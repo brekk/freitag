@@ -1,3 +1,5 @@
+import type { Comparison } from "Compare"
+
 import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
 import { Just, Nothing } from "Maybe"
@@ -5,7 +7,7 @@ import Set from "Set"
 import { assertEquals, test } from "Test"
 
 import { DEFAULT_CONFIG } from "CopyEdit"
-import { caseN2, report } from "Study"
+import Study from "Study"
 
 import {
   Tag,
@@ -34,6 +36,47 @@ import {
 
 
 
+alias Laws = { antisymmetric :: Boolean, reflexive :: Boolean, transitive :: Boolean }
+validateCompare :: (a -> a -> Comparison) -> a -> a -> a -> Laws
+validateCompare = (check, a, b, c) => {
+  aa = check(a, a)
+  bb = check(b, b)
+  cc = check(c, c)
+
+  ab = check(a, b)
+  ba = check(b, a)
+
+
+  refA = aa == EQ
+  refB = bb == EQ
+  refC = cc == EQ
+  reflexive = refA && refB && refC
+
+  antisymmetric = if (ab == EQ) {
+    ab == ba
+  } else if (ab == GT) {
+    ba == LT
+  } else {
+    ba == GT
+  }
+  transitive = if (ab == ba) do {
+    ac = check(a, c)
+    return ab == ac && ba == ac
+  } else {
+    true
+  }
+  return { reflexive, antisymmetric, transitive }
+}
+checkCompare :: (a -> a -> Comparison) -> a -> a -> a -> Boolean
+export checkCompare = (check, a, b, c) => where(validateCompare(check, a, b, c)) {
+  { reflexive, antisymmetric, transitive } =>
+    reflexive && antisymmetric && transitive
+}
+Study.report(
+  Study.caseN2(checkCompare(compareTag, create(["blah"]))),
+  "ensure compareTag is a valid comparision",
+  [#[#[create(["blah"]), create(["nah"])], true]],
+)
 HARNESS = {
   a: create(["a"]),
   abc: create(["a", "b", "c"]),
@@ -41,7 +84,6 @@ HARNESS = {
   skibidi: create(["skibidi"]),
   cdef: create(["c", "d", "e", "f"]),
 }
-
 TARTINE = [
   ["location", "city", "San Francisco"],
   ["location", "neighborhood", "The Mission"],
@@ -54,37 +96,30 @@ TARTINE = [
   ["bread"],
   ["near", "Dolores Park"],
 ]
-
-
-report(create, "create", [#[["skibidi"], HARNESS.skibidi]])
-report(
-  caseN2(isRelative),
+Study.report(create, "create", [#[["skibidi"], HARNESS.skibidi]])
+Study.report(
+  Study.caseN2(isRelative),
   "isRelative",
   [#[#[HARNESS.abc, HARNESS.abcd], true], #[#[HARNESS.abc, HARNESS.a], true]],
 )
-
-report(
-  caseN2(isRootSibling),
+Study.report(
+  Study.caseN2(isRootSibling),
   "isRootSibling",
   [#[#[HARNESS.abc, HARNESS.abcd], true], #[#[HARNESS.abc, HARNESS.a], true]],
 )
-
-report(length, "length", [#[HARNESS.abcd, 4], #[HARNESS.a, 1]])
-
-report(isBand, "isBand", [#[HARNESS.a, true], #[HARNESS.abcd, false]])
-
-report(scopeAt(2), "scopeAt", [#[HARNESS.abcd, Just("c")]])
-
-report(scopes, "scopes", [#[HARNESS.abcd, ["a", "b", "c", "d"]], #[HARNESS.abc, ["a", "b", "c"]]])
-
-report(render, "render", [#[HARNESS.abcd, "a:b:c:d"], #[HARNESS.a, "a"]])
-
-report(root, "root", [#[HARNESS.abcd, Just("a")], #[HARNESS.a, Just("a")]])
-
-report(focus, "focus", [#[HARNESS.abcd, Just("d")], #[HARNESS.a, Just("a")]])
-
-report(
-  caseN2(overlap),
+Study.report(length, "length", [#[HARNESS.abcd, 4], #[HARNESS.a, 1]])
+Study.report(isBand, "isBand", [#[HARNESS.a, true], #[HARNESS.abcd, false]])
+Study.report(scopeAt(2), "scopeAt", [#[HARNESS.abcd, Just("c")]])
+Study.report(
+  scopes,
+  "scopes",
+  [#[HARNESS.abcd, ["a", "b", "c", "d"]], #[HARNESS.abc, ["a", "b", "c"]]],
+)
+Study.report(render, "render", [#[HARNESS.abcd, "a:b:c:d"], #[HARNESS.a, "a"]])
+Study.report(root, "root", [#[HARNESS.abcd, Just("a")], #[HARNESS.a, Just("a")]])
+Study.report(focus, "focus", [#[HARNESS.abcd, Just("d")], #[HARNESS.a, Just("a")]])
+Study.report(
+  Study.caseN2(overlap),
   "overlap",
   [
     #[#[HARNESS.abcd, HARNESS.a], ["a"]],
@@ -92,9 +127,8 @@ report(
     #[#[HARNESS.a, HARNESS.skibidi], []],
   ],
 )
-
-report(
-  caseN2(affinity),
+Study.report(
+  Study.caseN2(affinity),
   "affinity - let's test some stuff and see what makes sense",
   [
     #[#[HARNESS.abcd, HARNESS.a], 0.25],
@@ -104,9 +138,8 @@ report(
     #[#[HARNESS.cdef, HARNESS.abcd], 0.5],
   ],
 )
-
-report(
-  caseN2(compareTag),
+Study.report(
+  Study.caseN2(compareTag),
   "compareTag",
   [
     #[#[HARNESS.abcd, HARNESS.a], GT],
@@ -119,7 +152,6 @@ report(
     #[#[HARNESS.a, HARNESS.skibidi], LT],
   ],
 )
-
 test(
   "compare",
   () => do {
@@ -127,8 +159,7 @@ test(
     return assertEquals(HARNESS.abcd < HARNESS.a, false)
   },
 )
-
-report(
+Study.report(
   many,
   "many",
   [
@@ -150,10 +181,9 @@ report(
     ],
   ],
 )
+// Study.report(lookupTable("francisco"), "lookupTable", [#[many(TARTINE), Dict.empty]])
 
-// report(lookupTable("francisco"), "lookupTable", [#[many(TARTINE), Dict.empty]])
-
-report(
+Study.report(
   _flatLookupTableWithConfig(DEFAULT_CONFIG, "francisco"),
   "_flatLookupTable",
   [
@@ -182,8 +212,7 @@ report(
     ],
   ],
 )
-
-report(
+Study.report(
   lookupTable("francisco"),
   "lookupTable",
   [
@@ -220,8 +249,7 @@ report(
     ],
   ],
 )
-
-report(
+Study.report(
   lookupTable("pastry"),
   "lookupTable(pastry)",
   [
@@ -267,10 +295,8 @@ report(
     ],
   ],
 )
-
-
-report(
-  caseN2(fuzzy),
+Study.report(
+  Study.caseN2(fuzzy),
   "fuzzy",
   [
     #[
@@ -305,16 +331,14 @@ report(
     ],
   ],
 )
+// Study.report(fuzzy("francisco"), "fuzzy", [#[many(TARTINE), Just([])]])
 
-// report(fuzzy("francisco"), "fuzzy", [#[many(TARTINE), Just([])]])
-
-report(
+Study.report(
   relate(many(TARTINE)),
   "relate",
   [#[Tag(["shop", "bakery"]), [0, 0, 2 / 3, 1 / 3, 0, 0, 0, 0, 0, 0]]],
 )
-
-report(
+Study.report(
   relateTags(many(TARTINE)),
   "relateTags",
   [
@@ -324,8 +348,7 @@ report(
     ],
   ],
 )
-
-report(
+Study.report(
   relateManyTags(many(TARTINE)),
   "relateManyTags",
   [

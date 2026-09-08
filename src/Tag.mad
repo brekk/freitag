@@ -165,6 +165,7 @@ export lookupTableWithConfigAndBase = (base, conf, str, tags) => pipe(
     base,
   ),
 )(tags)
+
 export lookupTableWithConfig = lookupTableWithConfigAndBase(Dict.empty)
 export lookupTable = lookupTableWithConfig(DEFAULT_CONFIG)
 

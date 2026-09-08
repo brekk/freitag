@@ -3,7 +3,7 @@ import String from "String"
 
 import CopyEdit from "CopyEdit"
 
-import { Tag, isSibling, overlap, render } from "@/FlugTag"
+import { Tag, isRootSibling, overlap, render } from "@/Tag"
 
 
 
@@ -11,7 +11,7 @@ main = () => {
   smork = Tag(["smork", "flugtag", "config"])
   name = Tag(["flugtag", "config", "common", "name"])
   pipe(
-    isSibling(smork),
+    isRootSibling(smork),
     IO.pTrace("siblings"),
   )(name)
 
