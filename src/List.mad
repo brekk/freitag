@@ -1,0 +1,24 @@
+import type { Maybe } from "Maybe"
+
+import List from "List"
+import { Just, Nothing } from "Maybe"
+
+
+
+diverge :: (Show a, Eq a) => List a -> List b -> List #[Maybe a, Maybe b]
+export diverge = (ax, bx) => {
+  inner = (cs, as, bs) => where(#[as, bs]) {
+    #[[a, ...aa], [b, ...bb]] =>
+      inner(List.concat(cs, (a == b ? [] : [#[Just(a), Just(b)]])), aa, bb)
+
+    #[[a, ...aa], []] =>
+      inner(List.concat(cs, [#[Just(a), Nothing]]), aa, [])
+
+    #[[], [b, ...bb]] =>
+      inner(List.concat(cs, [#[Nothing, Just(b)]]), [], bb)
+
+    #[_, _] =>
+      cs
+  }
+  return inner([], ax, bx)
+}

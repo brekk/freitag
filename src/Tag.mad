@@ -6,34 +6,33 @@ import type { DistanceConfig } from "CopyEdit"
 import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
 import Float from "Float"
+import Fn from "Function"
+import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 import Set from "Set"
-import { join, toLower } from "String"
+import String from "String"
 import Tuple from "Tuple"
 
 import { DEFAULT_CONFIG, distanceDict, nearestAllWithConfig, nearestWithConfig } from "CopyEdit"
 
 
 
-lower = map(toLower)
-
-export type Tag = Tag(List String)
+lower = map(String.toLower)
+export type Tag = NoTag | Tag(List String)
 instance Comparable Tag {
   compare = compareTag
 }
-
 create :: List String -> Tag
 export create = Tag
-
 many :: List (List String) -> List Tag
 export many = map(create)
-
-
 // INTRINSICS
 
-compareTag :: Tag -> Tag -> Comparison
-export compareTag = (a, b) => where(#[a, b]) {
+
+/*
+compareTagByAffinity :: Tag -> Tag -> Comparison
+export compareTagByAffinity = (a, b) => where(#[a, b]) {
   #[Tag(_), Tag(_)] =>
     do {
       aff = affinity(a, b)
@@ -48,36 +47,105 @@ export compareTag = (a, b) => where(#[a, b]) {
       }
     }
 }
+*/
 
+import _List from "@/List"
+
+
+
+alphasortString :: String -> String -> Comparison
+export alphasortString = (x, y) => {
+  checker = (c, ax, bx) => where(#[ax, bx]) {
+    #[[a1, ...as], [b1, ...bs]] =>
+      if (a1 == b1) {
+        checker(EQ, as, bs)
+      } else {
+        a1 < b1 ? LT : GT
+      }
+
+    #[[a1, ...as], []] =>
+      LT
+
+    #[[], [a1, ...as]] =>
+      GT
+
+    #[[], []] =>
+      c
+  }
+  return checker(EQ, String.toList(x), String.toList(y))
+}
+export compareLists = (ax, bx) => {
+  abcompare = where {
+    #[Just(a), Just(b)] =>
+      Just(alphasortString(a, b))
+
+    #[Just(_), _] =>
+      Just(GT)
+
+    #[_, Just(_)] =>
+      Just(LT)
+
+    _ =>
+      Nothing
+  }
+  inner = (out, list) => where(out) {
+    Nothing =>
+      where(list) {
+        [] =>
+          Just(EQ)
+
+        [p, ...ps] =>
+          abcompare(p)
+      }
+
+    Just(x) =>
+      x
+  }
+  return pipe(
+    _List.diverge(ax),
+    inner(Nothing),
+    fromMaybe(EQ),
+  )(bx)
+}
+compareTag :: Tag -> Tag -> Comparison
+export compareTag = (a, b) => where(#[a, b]) {
+  #[Tag(_a), NoTag] =>
+    GT
+
+  #[Tag(_a), Tag(_b)] =>
+    compareLists(_a, _b)
+
+  #[NoTag, Tag(_b)] =>
+    LT
+
+  _ =>
+    EQ
+}
 // FIELDS
 
 scopes :: Tag -> List String
 export scopes = where {
   Tag(x) =>
     x
-}
 
+  NoTag =>
+    []
+}
 _enscope :: (List String -> a) -> Tag -> a
 export _enscope = (fn, x) => pipe(
   scopes,
   fn,
 )(x)
-
 render :: Tag -> String
-export render = _enscope(join(":"))
-
+export render = _enscope(String.join(":"))
 length :: Tag -> Integer
 export length = _enscope(List.length)
-
 root :: Tag -> Maybe String
 export root = _enscope(List.first)
-
 focus :: Tag -> Maybe String
 export focus = _enscope(List.last)
-
 scopeAt :: Integer -> Tag -> Maybe String
 export scopeAt = (i, t) => _enscope(List.nth(i))(t)
-
 // DERIVATIONS
 
 isBand :: Tag -> Boolean
@@ -86,10 +154,8 @@ export isBand = pipe(
   List.length,
   (x) => x == 1,
 )
-
 isRootSibling :: Tag -> Tag -> Boolean
 export isRootSibling = (a, b) => root(a) == root(b)
-
 isRelative :: Tag -> Tag -> Boolean
 export isRelative = (_a, _b) => where(#[_a, _b]) {
   #[Tag(a), Tag(b)] =>
@@ -97,18 +163,40 @@ export isRelative = (_a, _b) => where(#[_a, _b]) {
       List.zip(a),
       List.any(where { #[k, v] => k == v }),
     )(b)
-}
 
+  _ =>
+    false
+}
 overlap :: Tag -> Tag -> List String
 export overlap = (a, b) => where(#[a, b]) {
   #[Tag(xs), Tag(ys)] =>
     List.reduce(
-      (agg, y) => List.includes(toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
+      (agg, y) => List.includes(String.toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
       [],
       lower(ys),
     )
-}
 
+  _ =>
+    []
+}
+difference :: Tag -> Tag -> List String
+export difference = (a, b) => where(#[a, b]) {
+  #[Tag(xs), Tag(ys)] =>
+    List.reduce(
+      (agg, y) => !List.includes(String.toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
+      [],
+      lower(ys),
+    )
+
+  #[Tag(x), _] =>
+    x
+
+  #[_, Tag(x)] =>
+    x
+
+  _ =>
+    []
+}
 affinity :: Tag -> Tag -> Float
 export affinity = (_a, _b) => {
   dA = length(_a)
@@ -120,11 +208,8 @@ export affinity = (_a, _b) => {
   )(_b)
   return n / d
 }
-
-
 equals :: Tag -> Tag -> Boolean
 export equals = (_a, _b) => affinity(_a, _b) == 1
-
 _flatLookupTableWithConfig :: DistanceConfig
   -> String
   -> List Tag
@@ -139,12 +224,10 @@ export _flatLookupTableWithConfig = (conf, str, tags) => pipe(
     )(t),
   ),
 )(tags)
-
 _lastString = pipe(
   List.last,
   fromMaybe(""),
 )
-
 lookupTableWithConfigAndBase :: Dictionary Byte (List #[Tag, String])
   -> DistanceConfig
   -> String
@@ -165,10 +248,8 @@ export lookupTableWithConfigAndBase = (base, conf, str, tags) => pipe(
     base,
   ),
 )(tags)
-
 export lookupTableWithConfig = lookupTableWithConfigAndBase(Dict.empty)
 export lookupTable = lookupTableWithConfig(DEFAULT_CONFIG)
-
 fuzzyLookup :: Dictionary a (List #[Tag, b]) -> List Tag
 export fuzzyLookup = pipe(
   Dict.values,
@@ -177,18 +258,14 @@ export fuzzyLookup = pipe(
   List.uniqueBy(equals),
   List.sortBy(compareTag),
 )
-
 fuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
 export fuzzyWithConfig = (conf, str, tags) => pipe(
   lookupTableWithConfig(conf, str),
   fuzzyLookup,
 )(tags)
-
 export fuzzy = fuzzyWithConfig(DEFAULT_CONFIG)
-
 relate :: List Tag -> Tag -> List Float
 export relate = (ts, t) => List.reduce((agg, u) => List.append(affinity(t, u), agg), [], ts)
-
 relateTags :: List Tag -> Tag -> List Tag
 export relateTags = (ts, t) => pipe(
   relate(ts),
@@ -201,6 +278,5 @@ export relateTags = (ts, t) => pipe(
   ),
   map(Tuple.snd),
 )(t)
-
 relateManyTags :: List Tag -> List Tag -> List (List Tag)
 export relateManyTags = (xs, ys) => map(relateTags(xs), ys)

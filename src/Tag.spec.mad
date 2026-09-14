@@ -2,8 +2,10 @@ import type { Comparison } from "Compare"
 
 import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
+import List from "List"
 import { Just, Nothing } from "Maybe"
 import Set from "Set"
+import String from "String"
 import { assertEquals, test } from "Test"
 
 import { DEFAULT_CONFIG } from "CopyEdit"
@@ -13,11 +15,11 @@ import {
   Tag,
   _flatLookupTableWithConfig,
   affinity,
+  alphasortString,
   compareTag,
   create,
   focus,
   fuzzy,
-  // fuzzy,
   isBand,
   isRelative,
   isRootSibling,
@@ -36,6 +38,32 @@ import {
 
 
 
+test(
+  "lettercompare",
+  () => {
+    return assertEquals(
+      List.sortBy(
+        alphasortString,
+        pipe(
+          String.split(""),
+          map(String.trim),
+          List.reject(String.isEmpty),
+          Set.fromList,
+          Set.toList,
+        )("the quick brown fox jumps over the lazy dog"),
+      ),
+      String.split("", "abcdefghijklmnopqrstuvwxyz"),
+    )
+  },
+)
+Study.report(
+  where {
+    #[a, b] =>
+      a < b
+  },
+  "chars have a default comparability?",
+  [#[#['a', 'b'], true], #[#['b', 'c'], true], #[#['a', 'c'], true]],
+)
 alias Laws = { antisymmetric :: Boolean, reflexive :: Boolean, transitive :: Boolean }
 validateCompare :: (a -> a -> Comparison) -> a -> a -> a -> Laws
 validateCompare = (check, a, b, c) => {
@@ -72,10 +100,24 @@ export checkCompare = (check, a, b, c) => where(validateCompare(check, a, b, c))
   { reflexive, antisymmetric, transitive } =>
     reflexive && antisymmetric && transitive
 }
-Study.report(
-  Study.caseN2(checkCompare(compareTag, create(["blah"]))),
-  "ensure compareTag is a valid comparision",
-  [#[#[create(["blah"]), create(["nah"])], true]],
+VALID = { antisymmetric: true, reflexive: true, transitive: true }
+validateComparisonAlgo = (x) => Study.report(Study.caseN3(validateCompare(x)))
+validateComparisonAlgo(compareTag)(
+  "ensure compareTag is a valid comparison algo",
+  [
+    #[#[create(["blah"]), create(["claw"]), create(["baw"])], VALID],
+    #[#[create(["blah"]), create(["blah", "blah"]), create(["blah", "nah"])], VALID],
+  ],
+)
+validateComparisonAlgo(alphasortString)(
+  "ensure alphasortString is a valid comparison algo",
+  [
+    #[#["a", "b", "c"], VALID],
+    #[#["ab", "bc", "cd"], VALID],
+    #[#["aa", "ab", "ac"], VALID],
+    #[#["b", "a", "c"], VALID],
+    #[#["astro", "casper", "bastard"], VALID],
+  ],
 )
 HARNESS = {
   a: create(["a"]),
@@ -147,7 +189,7 @@ Study.report(
     #[#[HARNESS.abcd, HARNESS.abcd], EQ],
     #[#[HARNESS.abc, HARNESS.abcd], LT],
     #[#[HARNESS.abcd, HARNESS.abc], GT],
-    #[#[HARNESS.skibidi, HARNESS.abc], LT],
+    #[#[HARNESS.skibidi, HARNESS.abc], GT],
     #[#[HARNESS.abc, HARNESS.skibidi], LT],
     #[#[HARNESS.a, HARNESS.skibidi], LT],
   ],
@@ -295,9 +337,9 @@ Study.report(
     ],
   ],
 )
-Study.report(
-  Study.caseN2(fuzzy),
-  "fuzzy",
+fuzzytest = Study.report(Study.caseN2(fuzzy))
+fuzzytest(
+  "fuzzy search: pastry",
   [
     #[
       #["pastry", many(TARTINE)],
@@ -314,6 +356,11 @@ Study.report(
         Tag(["location", "neighborhood", "The Mission"]),
       ],
     ],
+  ],
+)
+fuzzytest(
+  "fuzzy search: baker",
+  [
     #[
       #["baker", many(TARTINE)],
       [

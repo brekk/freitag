@@ -3,24 +3,30 @@ import String from "String"
 
 import CopyEdit from "CopyEdit"
 
+import T from "@/Tag"
 import { Tag, isRootSibling, overlap, render } from "@/Tag"
 
 
 
 main = () => {
-  smork = Tag(["smork", "flugtag", "config"])
-  name = Tag(["flugtag", "config", "common", "name"])
-  pipe(
-    isRootSibling(smork),
-    IO.pTrace("siblings"),
-  )(name)
+  // smork = Tag(["smork", "flugtag", "config"])
+  // name = Tag(["flugtag", "config", "common", "name"])
+  // pipe(
+  //   isRootSibling(smork),
+  //   IO.pTrace("siblings"),
+  // )(name)
+  //
+  // pipe(
+  //   overlap(smork),
+  //   IO.pTrace("overlap"),
+  //   String.join(":"),
+  //   IO.pTrace("joint"),
+  //   CopyEdit.distance(render(smork)),
+  //   IO.pTrace("distance"),
+  // )(name)
 
   pipe(
-    overlap(smork),
-    IO.pTrace("overlap"),
-    String.join(":"),
-    IO.pTrace("joint"),
-    CopyEdit.distance(render(smork)),
-    IO.pTrace("distance"),
-  )(name)
+    T.compareLists(["a", "b", "c", "d"]),
+    IO.pTrace("yoyyoyoy"),
+  )(["a", "b", "e", "f"])
 }
