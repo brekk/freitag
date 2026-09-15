@@ -7,14 +7,13 @@ import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
 import Float from "Float"
 import Fn from "Function"
-import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
-import Set from "Set"
+import {} from "Monad"
 import String from "String"
 import Tuple from "Tuple"
 
-import { DEFAULT_CONFIG, distanceDict, nearestAllWithConfig, nearestWithConfig } from "CopyEdit"
+import { DEFAULT_CONFIG, distanceDict } from "CopyEdit"
 
 import _List from "@/List"
 
@@ -32,8 +31,7 @@ export many = map(create)
 // INTRINSICS
 
 
-// this isn't currently an idempotent sort
-// so we're not exporting it
+// this isn't currently a lawful sort
 
 _compareTagByAffinity :: Tag -> Tag -> Comparison
 export _compareTagByAffinity = (a, b) => where(#[a, b]) {
@@ -159,34 +157,26 @@ export isBand = pipe(
 )
 isRootSibling :: Tag -> Tag -> Boolean
 export isRootSibling = (a, b) => root(a) == root(b)
+equalPair = where {
+  #[k, v] =>
+    k == v
+}
 isRelative :: Tag -> Tag -> Boolean
 export isRelative = (_a, _b) => where(#[_a, _b]) {
   #[Tag(a), Tag(b)] =>
     pipe(
       List.zip(a),
-      List.any(where { #[k, v] => k == v }),
+      List.any(equalPair),
     )(b)
 
   _ =>
     false
 }
-overlap :: Tag -> Tag -> List String
-export overlap = (a, b) => where(#[a, b]) {
+fold :: (a -> List a -> Boolean) -> Tag -> Tag -> List String
+export fold = (comp, a, b) => where(#[a, b]) {
   #[Tag(xs), Tag(ys)] =>
     List.reduce(
-      (agg, y) => List.includes(String.toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
-      [],
-      lower(ys),
-    )
-
-  _ =>
-    []
-}
-difference :: Tag -> Tag -> List String
-export difference = (a, b) => where(#[a, b]) {
-  #[Tag(xs), Tag(ys)] =>
-    List.reduce(
-      (agg, y) => !List.includes(String.toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
+      (agg, y) => comp(String.toLower(y), lower(xs)) ? List.concat(agg, [y]) : agg,
       [],
       lower(ys),
     )
@@ -200,6 +190,10 @@ export difference = (a, b) => where(#[a, b]) {
   _ =>
     []
 }
+overlap :: Tag -> Tag -> List String
+export overlap = fold(List.includes)
+difference :: Tag -> Tag -> List String
+export difference = fold((a, b) => Fn.complement(List.includes(a))(b))
 affinity :: Tag -> Tag -> Float
 export affinity = (_a, _b) => {
   dA = length(_a)

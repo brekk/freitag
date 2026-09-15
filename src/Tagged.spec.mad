@@ -1,24 +1,9 @@
-import type { MatchKind, Tagged } from "@/Tagged"
+// import type { } from "@/Tagged"
 
 import { caseN2, report } from "Study"
 
 import Tag from "@/Tag"
-import {
-  All,
-  Any,
-  Invert,
-  Match,
-  None,
-  Tagged,
-  all,
-  any,
-  kind,
-  none,
-  subject,
-  tagged,
-  tags,
-  untagged,
-} from "@/Tagged"
+import { AllTag, AnyTag, Invert, NoMod, Tagged, fuzzy, subject, tagged, tags } from "@/Tagged"
 
 
 
@@ -46,21 +31,13 @@ HARNESS = {
   },
 }
 ASSEMBLED = tagged(HARNESS.STRINGS, HARNESS.ENTITY)
-
-tagMaker = (k, fn, name) => report(
-  fn(HARNESS.STRINGS),
-  name,
-  [#[{ yo: "yes" }, Tagged(k, HARNESS.TAGS, { yo: "yes" })]],
-)
-
-tagMaker(Match, tagged, "tagged constructor")
-
-tagMaker(Invert, untagged, "untagged constructor")
-
-report(all, "all", [#[{ blah: "yes" }, Tagged(All, [], { blah: "yes" })]])
-report(any, "any", [#[{ blah: "yes" }, Tagged(Any, [], { blah: "yes" })]])
-report(none, "none", [#[{ blah: "yes" }, Tagged(None, [], { blah: "yes" })]])
-
-report(kind, "kind", [#[ASSEMBLED, Match]])
-report(tags, "tags", [#[ASSEMBLED, HARNESS.TAGS]])
+report(tags, "tags", [#[ASSEMBLED, HARNESS.ENTITY]])
 report(subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
+
+/*
+report(
+  fuzzy("pastry"),
+  "fuzzy",
+  [#[[ASSEMBLED], [Tagged(Match, [], { description: "a", location: "b", name: "c" })]]],
+)
+*/

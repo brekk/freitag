@@ -20,6 +20,7 @@ import {
   affinity,
   compareTag,
   create,
+  difference,
   focus,
   fuzzy,
   isBand,
@@ -164,7 +165,12 @@ Study.report(create, "create", [#[["skibidi"], HARNESS.skibidi]])
 Study.report(
   Study.caseN2(isRelative),
   "isRelative",
-  [#[#[HARNESS.abc, HARNESS.abcd], true], #[#[HARNESS.abc, HARNESS.a], true]],
+  [
+    #[#[HARNESS.abc, HARNESS.abcd], true],
+    #[#[HARNESS.abc, HARNESS.a], true],
+    #[#[NoTag, HARNESS.abcd], false],
+    #[#[HARNESS.abc, NoTag], false],
+  ],
 )
 Study.report(
   Study.caseN2(isRootSibling),
@@ -177,7 +183,7 @@ Study.report(scopeAt(2), "scopeAt", [#[HARNESS.abcd, Just("c")]])
 Study.report(
   toList,
   "toList",
-  [#[HARNESS.abcd, ["a", "b", "c", "d"]], #[HARNESS.abc, ["a", "b", "c"]]],
+  [#[HARNESS.abcd, ["a", "b", "c", "d"]], #[HARNESS.abc, ["a", "b", "c"]], #[NoTag, []]],
 )
 Study.report(render, "render", [#[HARNESS.abcd, "a:b:c:d"], #[HARNESS.a, "a"]])
 Study.report(root, "root", [#[HARNESS.abcd, Just("a")], #[HARNESS.a, Just("a")]])
@@ -406,6 +412,16 @@ Study.report(
   relate(many(TARTINE)),
   "relate",
   [#[Tag(["shop", "bakery"]), [0, 0, 2 / 3, 1 / 3, 0, 0, 0, 0, 0, 0]]],
+)
+Study.report(
+  difference(Tag(["a", "b", "c"])),
+  "difference",
+  [#[Tag(["a", "b", "d"]), ["d"]], #[NoTag, ["a", "b", "c"]]],
+)
+Study.report(
+  difference(NoTag),
+  "difference(NoTag)",
+  [#[Tag(["a", "b", "d"]), ["a", "b", "d"]], #[NoTag, []]],
 )
 Study.report(
   relateTags(many(TARTINE)),

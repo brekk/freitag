@@ -4,54 +4,59 @@ import type { Tag } from "@/Tag"
 
 import { EQ, GT, LT } from "Compare"
 
-import { Tag } from "@/Tag"
+import Tag from "@/Tag"
 
 
 
-export type MatchKind = Match | Invert | All | Any | None
-export type Tagged a = Tagged(MatchKind, List Tag, a)
-
-instance Comparable (Tagged a) {
-  compare = compareTagged
-}
-
-
-
+// Tagged stuff can have many tags to a single shared value
+export type TagMod = NoMod(Tag) | Invert(Tag) | AnyTag | NoneTag | AllTag
+export type Tagged a = Tagged(List TagMod, a)
+// matching allows us to 
 // CONSTRUCTORS
 
 export tagged = pipe(
-  map(Tag),
-  Tagged(Match),
+  map(
+    pipe(
+      Tag.Tag,
+      NoMod,
+    ),
+  ),
+  Tagged,
 )
-export untagged = pipe(
-  map(Tag),
-  Tagged(Invert),
-)
-// no actual tags needed
-export all = Tagged(All, [])
-export any = Tagged(Any, [])
-export none = Tagged(None, [])
+export stripMod = where {
+  NoMod(x) =>
+    x
 
-// FIELDS
+  Invert(x) =>
+    x
 
-kind :: Tagged a -> MatchKind
-export kind = where {
-  Tagged(k, _, _) =>
-    k
+  _ =>
+    Tag.NoTag
 }
+export mapMod = (fn, xx) => where(xx) {
+  NoMod(x) =>
+    NoMod(fn(x))
 
-tags :: Tagged a -> List Tag
+  Invert(x) =>
+    Invert(fn(x))
+
+  _ =>
+    xx
+}
+tags :: Tagged a -> List TagMod
 export tags = where {
-  Tagged(_, t, _) =>
+  Tagged(t, _) =>
     t
 }
-
+export mapTags = (fn, x) => where(x) {
+  Tagged(a, b) =>
+    Tagged(fn(a), b)
+}
 subject :: Tagged a -> a
 export subject = where {
-  Tagged(_, _, s) =>
+  Tagged(_, s) =>
     s
 }
-
 export alias Relationship = {
   affinity :: Float,
   isRelative :: Boolean,
@@ -59,24 +64,16 @@ export alias Relationship = {
   overlap :: List String,
 }
 
-// related :: Tagged a -> Tagged b -> ???
-// related = (a, b) => {
-//   tA = tags(a)
-//   tB = tags(b)
-//
-// }
-
-compareTagged = (_a, _b) => where(#[_a, _b]) {
-  #[Tagged(Match, tA, sA), Tagged(Match, tB, sB)] =>
-    do {
-      // we're gonna need to compare a bunch of tags to each other
-      return EQ
-    }
-
-  _ =>
-    LT
-}
 // DERIVATIONS
-
-fuzzy :: String -> List (Tagged a) -> List (Tagged a)
-export fuzzy = (search, list) => list
+//
+// fuzzy :: String -> List (Tagged a) -> List (Tagged a)
+// export fuzzy = (search, list) => pipe(
+//   map(where {
+//     Tagged(ts, x) => map(
+// mapMod(Tag.fuzzy(search))
+//     )(ts)
+//
+//
+//
+//   })
+// )(list)
