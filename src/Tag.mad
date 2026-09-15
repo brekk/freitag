@@ -16,6 +16,8 @@ import Tuple from "Tuple"
 
 import { DEFAULT_CONFIG, distanceDict, nearestAllWithConfig, nearestWithConfig } from "CopyEdit"
 
+import _List from "@/List"
+
 
 
 lower = map(String.toLower)
@@ -30,9 +32,11 @@ export many = map(create)
 // INTRINSICS
 
 
-/*
-compareTagByAffinity :: Tag -> Tag -> Comparison
-export compareTagByAffinity = (a, b) => where(#[a, b]) {
+// this isn't currently an idempotent sort
+// so we're not exporting it
+
+_compareTagByAffinity :: Tag -> Tag -> Comparison
+export _compareTagByAffinity = (a, b) => where(#[a, b]) {
   #[Tag(_), Tag(_)] =>
     do {
       aff = affinity(a, b)
@@ -46,15 +50,18 @@ export compareTagByAffinity = (a, b) => where(#[a, b]) {
         return lenA < lenB ? LT : GT
       }
     }
+
+  #[Tag(_), NoTag] =>
+    LT
+
+  #[NoTag, Tag(_)] =>
+    GT
+
+  _ =>
+    EQ
 }
-*/
-
-import _List from "@/List"
-
-
-
-alphasortString :: String -> String -> Comparison
-export alphasortString = (x, y) => {
+_alphasortString :: String -> String -> Comparison
+export _alphasortString = (x, y) => {
   checker = (c, ax, bx) => where(#[ax, bx]) {
     #[[a1, ...as], [b1, ...bs]] =>
       if (a1 == b1) {
@@ -74,10 +81,10 @@ export alphasortString = (x, y) => {
   }
   return checker(EQ, String.toList(x), String.toList(y))
 }
-export compareLists = (ax, bx) => {
+export _compareLists = (ax, bx) => {
   abcompare = where {
     #[Just(a), Just(b)] =>
-      Just(alphasortString(a, b))
+      Just(_alphasortString(a, b))
 
     #[Just(_), _] =>
       Just(GT)
@@ -88,22 +95,18 @@ export compareLists = (ax, bx) => {
     _ =>
       Nothing
   }
-  inner = (out, list) => where(out) {
-    Nothing =>
-      where(list) {
-        [] =>
-          Just(EQ)
+  inner = (list) => where(list) {
+    [] =>
+      // really just for coverage
+      abcompare(#[Nothing, Nothing])
 
-        [p, ...ps] =>
-          abcompare(p)
-      }
-
-    Just(x) =>
-      x
+    [p, ...ps] =>
+      abcompare(p)
   }
+
   return pipe(
     _List.diverge(ax),
-    inner(Nothing),
+    inner,
     fromMaybe(EQ),
   )(bx)
 }
@@ -113,7 +116,7 @@ export compareTag = (a, b) => where(#[a, b]) {
     GT
 
   #[Tag(_a), Tag(_b)] =>
-    compareLists(_a, _b)
+    _compareLists(_a, _b)
 
   #[NoTag, Tag(_b)] =>
     LT
@@ -123,8 +126,8 @@ export compareTag = (a, b) => where(#[a, b]) {
 }
 // FIELDS
 
-scopes :: Tag -> List String
-export scopes = where {
+toList :: Tag -> List String
+export toList = where {
   Tag(x) =>
     x
 
@@ -133,7 +136,7 @@ export scopes = where {
 }
 _enscope :: (List String -> a) -> Tag -> a
 export _enscope = (fn, x) => pipe(
-  scopes,
+  toList,
   fn,
 )(x)
 render :: Tag -> String
@@ -150,7 +153,7 @@ export scopeAt = (i, t) => _enscope(List.nth(i))(t)
 
 isBand :: Tag -> Boolean
 export isBand = pipe(
-  scopes,
+  toList,
   List.length,
   (x) => x == 1,
 )
@@ -217,7 +220,7 @@ _flatLookupTableWithConfig :: DistanceConfig
 export _flatLookupTableWithConfig = (conf, str, tags) => pipe(
   chain(
     (t) => pipe(
-      scopes,
+      toList,
       distanceDict(conf, str),
       Dict.toList,
       map(where { #[dist, stack] => #[t, #[dist, stack]] }),
@@ -256,7 +259,8 @@ export fuzzyLookup = pipe(
   List.flatten,
   map(Tuple.fst),
   List.uniqueBy(equals),
-  List.sortBy(compareTag),
+  List.sortBy(_compareTagByAffinity),
+  // List.sortBy(compareTag),
 )
 fuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
 export fuzzyWithConfig = (conf, str, tags) => pipe(

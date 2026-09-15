@@ -1,24 +1,38 @@
 import type { Maybe } from "Maybe"
 
+import Fn from "Function"
 import List from "List"
 import { Just, Nothing } from "Maybe"
 
 
 
-diverge :: (Show a, Eq a) => List a -> List b -> List #[Maybe a, Maybe b]
-export diverge = (ax, bx) => {
-  inner = (cs, as, bs) => where(#[as, bs]) {
-    #[[a, ...aa], [b, ...bb]] =>
-      inner(List.concat(cs, (a == b ? [] : [#[Just(a), Just(b)]])), aa, bb)
+divergeBy :: Eq a => (a -> b -> Boolean) -> List a -> List b -> List #[Maybe a, Maybe b]
+export divergeBy = (equality, ax, bx) => {
+  branch = (cs, as, bs) => {
+    add = List.concat(cs)
+    return where(#[as, bs]) {
+      #[[a, ...aa], [b, ...bb]] =>
+        pipe(
+          add,
+          branch($, aa, bb),
+        )(equality(a, b) ? [] : [#[Just(a), Just(b)]])
 
-    #[[a, ...aa], []] =>
-      inner(List.concat(cs, [#[Just(a), Nothing]]), aa, [])
+      #[[a, ...aa], []] =>
+        pipe(
+          add,
+          branch($, aa, []),
+        )([#[Just(a), Nothing]])
 
-    #[[], [b, ...bb]] =>
-      inner(List.concat(cs, [#[Nothing, Just(b)]]), [], bb)
+      #[[], [b, ...bb]] =>
+        pipe(
+          add,
+          branch($, [], bb),
+        )([#[Nothing, Just(b)]])
 
-    #[_, _] =>
-      cs
+      #[_, _] =>
+        cs
+    }
   }
-  return inner([], ax, bx)
+  return branch([], ax, bx)
 }
+export diverge = divergeBy(Fn.equals)

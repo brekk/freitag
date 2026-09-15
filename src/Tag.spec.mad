@@ -12,10 +12,12 @@ import { DEFAULT_CONFIG } from "CopyEdit"
 import Study from "Study"
 
 import {
+  NoTag,
   Tag,
+  _alphasortString,
+  _compareTagByAffinity,
   _flatLookupTableWithConfig,
   affinity,
-  alphasortString,
   compareTag,
   create,
   focus,
@@ -33,7 +35,7 @@ import {
   render,
   root,
   scopeAt,
-  scopes,
+  toList,
 } from "@/Tag"
 
 
@@ -43,7 +45,7 @@ test(
   () => {
     return assertEquals(
       List.sortBy(
-        alphasortString,
+        _alphasortString,
         pipe(
           String.split(""),
           map(String.trim),
@@ -55,6 +57,16 @@ test(
       String.split("", "abcdefghijklmnopqrstuvwxyz"),
     )
   },
+)
+Study.report(
+  List.sortBy(compareTag),
+  "compareTag sorts correctly",
+  [
+    #[
+      [NoTag, Tag(["b"]), Tag(["b", "c"]), NoTag, Tag(["a"]), Tag(["a", "b"])],
+      [NoTag, NoTag, Tag(["a"]), Tag(["a", "b"]), Tag(["b"]), Tag(["b", "c"])],
+    ],
+  ],
 )
 Study.report(
   where {
@@ -101,7 +113,16 @@ export checkCompare = (check, a, b, c) => where(validateCompare(check, a, b, c))
     reflexive && antisymmetric && transitive
 }
 VALID = { antisymmetric: true, reflexive: true, transitive: true }
+MOSTLY_VALID = { antisymmetric: false, reflexive: true, transitive: true }
 validateComparisonAlgo = (x) => Study.report(Study.caseN3(validateCompare(x)))
+validateComparisonAlgo(_compareTagByAffinity)(
+  "ensure compareTagByAffinity is a mostly valid comparison algo",
+  [
+    #[#[create(["blah"]), create(["claw"]), create(["baw"])], MOSTLY_VALID],
+    #[#[NoTag, create(["claw"]), create(["baw"])], VALID],
+    #[#[create(["blah"]), create(["blah", "blah"]), create(["blah", "nah"])], MOSTLY_VALID],
+  ],
+)
 validateComparisonAlgo(compareTag)(
   "ensure compareTag is a valid comparison algo",
   [
@@ -109,10 +130,11 @@ validateComparisonAlgo(compareTag)(
     #[#[create(["blah"]), create(["blah", "blah"]), create(["blah", "nah"])], VALID],
   ],
 )
-validateComparisonAlgo(alphasortString)(
+validateComparisonAlgo(_alphasortString)(
   "ensure alphasortString is a valid comparison algo",
   [
     #[#["a", "b", "c"], VALID],
+    #[#["", "b", "c"], VALID],
     #[#["ab", "bc", "cd"], VALID],
     #[#["aa", "ab", "ac"], VALID],
     #[#["b", "a", "c"], VALID],
@@ -153,8 +175,8 @@ Study.report(length, "length", [#[HARNESS.abcd, 4], #[HARNESS.a, 1]])
 Study.report(isBand, "isBand", [#[HARNESS.a, true], #[HARNESS.abcd, false]])
 Study.report(scopeAt(2), "scopeAt", [#[HARNESS.abcd, Just("c")]])
 Study.report(
-  scopes,
-  "scopes",
+  toList,
+  "toList",
   [#[HARNESS.abcd, ["a", "b", "c", "d"]], #[HARNESS.abc, ["a", "b", "c"]]],
 )
 Study.report(render, "render", [#[HARNESS.abcd, "a:b:c:d"], #[HARNESS.a, "a"]])
