@@ -1,0 +1,154 @@
+{
+  "buildHash": "30a90ff366ab2d3936da97bb3cd4c7d6",
+  "jsApi": {
+    "apiInstances": [
+      "Comparable Tag"
+    ],
+    "apiAliases": {},
+    "apiInterfaces": {},
+    "apiNames": {
+      "src/Tag.mad#relateTags": "List Tag -> Tag -> List Tag",
+      "src/Tag.mad#lookupTable": "String -> List Tag -> Dictionary Byte (List #[Tag, String])",
+      "src/Tag.mad#difference": "Tag -> Tag -> List String",
+      "src/Tag.mad#root": "Tag -> Maybe String",
+      "src/Tag.mad#create": "List String -> Tag",
+      "src/Tag.mad#scopeAt": "Integer -> Tag -> Maybe String",
+      "src/List.mad#divergeBy": "Eq a => (a -> b -> Boolean) -> List a -> List b -> List #[Maybe a, Maybe b]",
+      "src/Tag.mad#relateManyTags": "List Tag -> List Tag -> List (List Tag)",
+      "src/Tag.mad#focus": "Tag -> Maybe String",
+      "createTag": "List String -> Tag",
+      "src/Tagged.mad#createExact": "List String -> TagQuery",
+      "src/Tag.mad#many": "List (List String) -> List Tag",
+      "tagged": "List (List String) -> a -> Tagged a",
+      "src/Tagged.mad#fuzzy": "String -> Tagged a -> List TagQuery",
+      "src/Tag.mad#fuzzyLookup": "Dictionary a (List #[Tag, b]) -> List Tag",
+      "NoTag": "List String -> Tag",
+      "src/Tag.mad#_enscope": "(List String -> a) -> Tag -> a",
+      "src/Tag.mad#_compareTagByAffinity": "Tag -> Tag -> Comparison",
+      "src/Tagged.mad#subject": "Tagged a -> a",
+      "src/Tagged.mad#queries": "Tagged a -> List TagQuery",
+      "Tag": "List String -> Tag",
+      "ExactQuery": "Tag -> TagQuery",
+      "src/Tag.mad#relate": "List Tag -> Tag -> List Float",
+      "src/Tag.mad#length": "Tag -> Integer",
+      "src/Tag.mad#affinity": "Tag -> Tag -> Float",
+      "src/Tag.mad#lookupTableWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> Dictionary Byte (List #[Tag, String])",
+      "src/Tag.mad#fuzzyWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> List Tag",
+      "InvertQuery": "Tag -> TagQuery",
+      "AnyTag": "TagQuery",
+      "src/Tag.mad#equals": "Tag -> Tag -> Boolean",
+      "src/Tag.mad#_flatLookupTableWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> List #[Tag, #[Byte, List String]]",
+      "src/Tag.mad#overlap": "Tag -> Tag -> List String",
+      "filter": "List (Tagged a) -> Tag -> List (Tagged a)",
+      "NoTags": "TagQuery",
+      "src/Tagged.mad#tagged": "List (List String) -> a -> Tagged a",
+      "src/Tagged.mad#mapQueries": "(List TagQuery -> List TagQuery) -> Tagged a -> Tagged a",
+      "src/Tag.mad#render": "Tag -> String",
+      "src/Tag.mad#_alphasortString": "String -> String -> Comparison",
+      "src/Tagged.mad#mapQuery": "(Tag -> Tag) -> TagQuery -> TagQuery",
+      "src/Tag.mad#fuzzy": "String -> List Tag -> List Tag",
+      "src/List.mad#diverge": "Eq a => List a -> List a -> List #[Maybe a, Maybe a]",
+      "src/Tag.mad#isRootSibling": "Tag -> Tag -> Boolean",
+      "src/Tagged.mad#stripQuery": "TagQuery -> Tag",
+      "src/Tag.mad#fold": "(String -> List String -> Boolean) -> Tag -> Tag -> List String",
+      "src/Tag.mad#isBand": "Tag -> Boolean",
+      "src/Tag.mad#_compareLists": "List String -> List String -> Comparison",
+      "src/Tag.mad#toList": "Tag -> List String",
+      "src/Tag.mad#compareTag": "Tag -> Tag -> Comparison",
+      "src/Tag.mad#isRelative": "Tag -> Tag -> Boolean",
+      "src/Tagged.mad#filter": "List (Tagged a) -> Tag -> List (Tagged a)",
+      "src/Tag.mad#lookupTableWithConfigAndBase": "Dictionary Byte (List #[Tag, String]) -> { useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> Dictionary Byte (List #[Tag, String])"
+    },
+    "apiTypes": {
+      "src/Tagged.mad#TagQuery": [
+        "NoTags",
+        "ExactQuery Tag",
+        "InvertQuery Tag",
+        "AnyTag"
+      ],
+      "src/Tag.mad#Tag": [
+        "NoTag",
+        "Tag (List String)"
+      ],
+      "src/Tagged.mad#Tagged a": [
+        "Tagged (List TagQuery) a"
+      ]
+    }
+  },
+  "llvmApi": {
+    "apiInstances": [
+      "Comparable Tag"
+    ],
+    "apiAliases": {},
+    "apiInterfaces": {},
+    "apiNames": {
+      "src/Tag.mad#relateTags": "List Tag -> Tag -> List Tag",
+      "src/Tag.mad#lookupTable": "String -> List Tag -> Dictionary Byte (List #[Tag, String])",
+      "src/Tag.mad#difference": "Tag -> Tag -> List String",
+      "src/Tag.mad#root": "Tag -> Maybe String",
+      "src/Tag.mad#create": "List String -> Tag",
+      "src/Tag.mad#scopeAt": "Integer -> Tag -> Maybe String",
+      "src/List.mad#divergeBy": "Eq a => (a -> b -> Boolean) -> List a -> List b -> List #[Maybe a, Maybe b]",
+      "src/Tag.mad#relateManyTags": "List Tag -> List Tag -> List (List Tag)",
+      "src/Tag.mad#focus": "Tag -> Maybe String",
+      "createTag": "List String -> Tag",
+      "src/Tagged.mad#createExact": "List String -> TagQuery",
+      "src/Tag.mad#many": "List (List String) -> List Tag",
+      "tagged": "List (List String) -> a -> Tagged a",
+      "src/Tagged.mad#fuzzy": "String -> Tagged a -> List TagQuery",
+      "src/Tag.mad#fuzzyLookup": "Dictionary a (List #[Tag, b]) -> List Tag",
+      "NoTag": "List String -> Tag",
+      "src/Tag.mad#_enscope": "(List String -> a) -> Tag -> a",
+      "src/Tag.mad#_compareTagByAffinity": "Tag -> Tag -> Comparison",
+      "src/Tagged.mad#subject": "Tagged a -> a",
+      "src/Tagged.mad#queries": "Tagged a -> List TagQuery",
+      "Tag": "List String -> Tag",
+      "ExactQuery": "Tag -> TagQuery",
+      "src/Tag.mad#relate": "List Tag -> Tag -> List Float",
+      "src/Tag.mad#length": "Tag -> Integer",
+      "src/Tag.mad#affinity": "Tag -> Tag -> Float",
+      "src/Tag.mad#lookupTableWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> Dictionary Byte (List #[Tag, String])",
+      "src/Tag.mad#fuzzyWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> List Tag",
+      "InvertQuery": "Tag -> TagQuery",
+      "AnyTag": "TagQuery",
+      "src/Tag.mad#equals": "Tag -> Tag -> Boolean",
+      "src/Tag.mad#_flatLookupTableWithConfig": "{ useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> List #[Tag, #[Byte, List String]]",
+      "src/Tag.mad#overlap": "Tag -> Tag -> List String",
+      "filter": "List (Tagged a) -> Tag -> List (Tagged a)",
+      "NoTags": "TagQuery",
+      "src/Tagged.mad#tagged": "List (List String) -> a -> Tagged a",
+      "src/Tagged.mad#mapQueries": "(List TagQuery -> List TagQuery) -> Tagged a -> Tagged a",
+      "src/Tag.mad#render": "Tag -> String",
+      "src/Tag.mad#_alphasortString": "String -> String -> Comparison",
+      "src/Tagged.mad#mapQuery": "(Tag -> Tag) -> TagQuery -> TagQuery",
+      "src/Tag.mad#fuzzy": "String -> List Tag -> List Tag",
+      "src/List.mad#diverge": "Eq a => List a -> List a -> List #[Maybe a, Maybe a]",
+      "src/Tag.mad#isRootSibling": "Tag -> Tag -> Boolean",
+      "src/Tagged.mad#stripQuery": "TagQuery -> Tag",
+      "src/Tag.mad#fold": "(String -> List String -> Boolean) -> Tag -> Tag -> List String",
+      "src/Tag.mad#isBand": "Tag -> Boolean",
+      "src/Tag.mad#_compareLists": "List String -> List String -> Comparison",
+      "src/Tag.mad#toList": "Tag -> List String",
+      "src/Tag.mad#compareTag": "Tag -> Tag -> Comparison",
+      "src/Tag.mad#isRelative": "Tag -> Tag -> Boolean",
+      "src/Tagged.mad#filter": "List (Tagged a) -> Tag -> List (Tagged a)",
+      "src/Tag.mad#lookupTableWithConfigAndBase": "Dictionary Byte (List #[Tag, String]) -> { useDamerau :: Boolean, weights :: { delete :: Byte, insert :: Byte, substitute :: Byte } } -> String -> List Tag -> Dictionary Byte (List #[Tag, String])"
+    },
+    "apiTypes": {
+      "src/Tagged.mad#TagQuery": [
+        "NoTags",
+        "ExactQuery Tag",
+        "InvertQuery Tag",
+        "AnyTag"
+      ],
+      "src/Tag.mad#Tag": [
+        "NoTag",
+        "Tag (List String)"
+      ],
+      "src/Tagged.mad#Tagged a": [
+        "Tagged (List TagQuery) a"
+      ]
+    }
+  },
+  "versionHash": "25e64aa754c310d45c1e084d574c1bb0"
+}

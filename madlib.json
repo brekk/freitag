@@ -1,25 +1,25 @@
 {
   "name": "freitag",
   "version": "0.0.1",
-  "main": "src/Main.mad",
+  "main": "src/Freitag.mad",
   "importAliases": {
     ".": "src"
   },
   "dependencies": [
     {
-      "url": "https://github.com/brekk/study/archive/refs/tags/v0.0.3.zip",
-      "description": "Study",
-      "minVersion": "0.0.3"
+      "minVersion": "0.0.7",
+      "url": "https://github.com/brekk/study/archive/refs/tags/v0.0.7.zip",
+      "description": "Study"
     },
     {
-      "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.6.zip",
-      "description": "PartyBus",
-      "minVersion": "0.0.6"
+      "minVersion": "0.0.9",
+      "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.9.zip",
+      "description": "PartyBus"
     },
     {
+      "minVersion": "0.0.2",
       "url": "https://github.com/brekk/copyedit/archive/refs/tags/v0.0.2.zip",
-      "description": "CopyEdit",
-      "minVersion": "0.0.2"
+      "description": "CopyEdit"
     }
   ]
 }

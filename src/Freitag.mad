@@ -1,0 +1,20 @@
+import type { Tag } from "@/Tag"
+import type { TagQuery, Tagged } from "@/Tagged"
+
+import T from "@/Tag"
+import Q from "@/Tagged"
+
+
+
+export type Tag
+export type TagQuery
+export type Tagged
+export Tag = T.Tag
+export NoTag = T.Tag
+export createTag = T.create
+export NoTags = Q.NoTags
+export ExactQuery = Q.ExactQuery
+export InvertQuery = Q.InvertQuery
+export AnyTag = Q.AnyTag
+export tagged = Q.tagged
+export filter = Q.filter
