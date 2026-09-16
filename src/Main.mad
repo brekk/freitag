@@ -43,7 +43,7 @@ main = () => {
   library = [fantasyBook, spaceBook]
   pipe(
     IO.pTrace("my library"),
-    map(Q.fuzzy("diversity")),
+    Q.filter(library),
     IO.pTrace("fuzz"),
-  )(library)
+  )(T.Tag(["award", "diversity"]))
 }

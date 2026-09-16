@@ -4,6 +4,7 @@ import type { Tag } from "@/Tag"
 
 import { EQ, GT, LT } from "Compare"
 import List from "List"
+import { Just, Nothing } from "Maybe"
 import String from "String"
 
 import Tag from "@/Tag"
@@ -90,4 +91,59 @@ export fuzzy = (s, tgd) => pipe(
   queries,
   List.filter(checkMatch(s)),
 )(tgd)
-export searchItUp = (tagLib, query) => {}
+isPrefixOf = (pattern, mTag) => where(mTag) {
+  Tag.Tag(tag) =>
+    do {
+      n = List.length(pattern)
+      return List.length(tag) >= n && List.take(n, tag) == pattern
+    }
+
+  _ =>
+    false
+}
+claims = (qq, tag) => where(qq) {
+  ExactQuery(Tag.Tag(segments)) =>
+    isPrefixOf(segments, tag)
+
+  ExactQuery(_) =>
+    false
+
+  InvertQuery(Tag.Tag(segments)) =>
+    isPrefixOf(segments, tag)
+
+  InvertQuery(_) =>
+    false
+
+  AnyTag =>
+    true
+
+  NoTags =>
+    false
+}
+appliesTo = where {
+  ExactQuery(_) =>
+    true
+
+  InvertQuery(_) =>
+    false
+
+  AnyTag =>
+    true
+
+  NoTags =>
+    false
+}
+enabled :: Tagged a -> Tag -> Boolean
+enabled = (tgd, tag) => pipe(
+  queries,
+  List.find(claims($, tag)),
+  where {
+    Just(q) =>
+      appliesTo(q)
+
+    Nothing =>
+      false
+  },
+)(tgd)
+filter :: List (Tagged a) -> Tag -> List (Tagged a)
+export filter = (tagLib, queryTag) => List.filter(enabled($, queryTag), tagLib)
