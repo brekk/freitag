@@ -253,8 +253,7 @@ export fuzzyLookup = pipe(
   List.flatten,
   map(Tuple.fst),
   List.uniqueBy(equals),
-  List.sortBy(_compareTagByAffinity),
-  // List.sortBy(compareTag),
+  List.sortBy(compareTag),
 )
 fuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
 export fuzzyWithConfig = (conf, str, tags) => pipe(

@@ -3,7 +3,7 @@
 import { caseN2, report } from "Study"
 
 import Tag from "@/Tag"
-import { AllTag, AnyTag, Invert, NoMod, Tagged, fuzzy, subject, tagged, tags } from "@/Tagged"
+import Q from "@/Tagged"
 
 
 
@@ -30,9 +30,8 @@ HARNESS = {
     description: "Fantastic croissants and morning buns",
   },
 }
-ASSEMBLED = tagged(HARNESS.STRINGS, HARNESS.ENTITY)
-report(tags, "tags", [#[ASSEMBLED, HARNESS.ENTITY]])
-report(subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
+ASSEMBLED = Q.tagged(HARNESS.STRINGS, HARNESS.ENTITY)
+report(Q.subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
 
 /*
 report(
