@@ -5,28 +5,45 @@ import CopyEdit from "CopyEdit"
 
 import T from "@/Tag"
 import { Tag, isRootSibling, overlap, render } from "@/Tag"
+import Q from "@/Tagged"
 
 
 
+type DemoBook = Book(String)
 main = () => {
-  // smork = Tag(["smork", "flugtag", "config"])
-  // name = Tag(["flugtag", "config", "common", "name"])
-  // pipe(
-  //   isRootSibling(smork),
-  //   IO.pTrace("siblings"),
-  // )(name)
-  //
-  // pipe(
-  //   overlap(smork),
-  //   IO.pTrace("overlap"),
-  //   String.join(":"),
-  //   IO.pTrace("joint"),
-  //   CopyEdit.distance(render(smork)),
-  //   IO.pTrace("distance"),
-  // )(name)
-
+  fantasyBook = Q.tagged(
+    [
+      ["author", "Piers & Tony"],
+      ["publishDate", "1234-12-31"],
+      ["category", "fantasy"],
+      ["fauna", "dragon", "Smug"],
+      ["fauna", "human-like", "man-and-a-half"],
+      ["character", "Swordling the Bold"],
+      ["award", "diversity"],
+    ],
+    Book("Hoard of the Bracelets"),
+  )
+  spaceBook = Q.Tagged(
+    [
+      ...map(
+        Q.createExact,
+        [
+          ["author", "Jim O'Jamble"],
+          ["publishDate", "1999-10-31"],
+          ["category", "science fiction"],
+          ["fauna", "alien", "Blarrch"],
+          ["fauna", "alien", "Xyxx'l"],
+          ["character", "John O'Space"],
+        ],
+      ),
+      Q.InvertQuery(T.Tag(["diversity"])),
+    ],
+    Book("The Di'Dactic Par'able of In'tolerance"),
+  )
+  library = [fantasyBook, spaceBook]
   pipe(
-    T.compareLists(["a", "b", "c", "d"]),
-    IO.pTrace("yoyyoyoy"),
-  )(["a", "b", "e", "f"])
+    IO.pTrace("my library"),
+    map(Q.fuzzy("diversity")),
+    IO.pTrace("fuzz"),
+  )(library)
 }
