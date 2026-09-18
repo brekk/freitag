@@ -15,8 +15,8 @@ import {
   NoTag,
   Tag,
   _alphasortString,
-  _compareTagByAffinity,
   _flatLookupTableWithConfig,
+  _unlawfulCompareTagByAffinity,
   affinity,
   compareTag,
   create,
@@ -116,8 +116,8 @@ export checkCompare = (check, a, b, c) => where(validateCompare(check, a, b, c))
 VALID = { antisymmetric: true, reflexive: true, transitive: true }
 MOSTLY_VALID = { antisymmetric: false, reflexive: true, transitive: true }
 validateComparisonAlgo = (x) => Study.report(Study.caseN3(validateCompare(x)))
-validateComparisonAlgo(_compareTagByAffinity)(
-  "ensure compareTagByAffinity is a mostly valid comparison algo",
+validateComparisonAlgo(_unlawfulCompareTagByAffinity)(
+  "ensure unlawfulCompareTagByAffinity is a mostly valid comparison algo",
   [
     #[#[create(["blah"]), create(["claw"]), create(["baw"])], MOSTLY_VALID],
     #[#[NoTag, create(["claw"]), create(["baw"])], VALID],

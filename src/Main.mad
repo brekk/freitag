@@ -1,10 +1,7 @@
 import IO from "IO"
 import String from "String"
 
-import CopyEdit from "CopyEdit"
-
 import T from "@/Tag"
-import { Tag, isRootSibling, overlap, render } from "@/Tag"
 import Q from "@/Tagged"
 
 

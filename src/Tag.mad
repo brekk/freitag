@@ -30,8 +30,8 @@ many :: List (List String) -> List Tag
 export many = map(create)
 // this isn't currently a lawful sort
 
-_compareTagByAffinity :: Tag -> Tag -> Comparison
-export _compareTagByAffinity = (a, b) => where(#[a, b]) {
+_unlawfulCompareTagByAffinity :: Tag -> Tag -> Comparison
+export _unlawfulCompareTagByAffinity = (a, b) => where(#[a, b]) {
   #[Tag(_), Tag(_)] =>
     do {
       aff = affinity(a, b)
@@ -244,20 +244,26 @@ export lookupTableWithConfigAndBase = (base, conf, str, tags) => pipe(
 )(tags)
 export lookupTableWithConfig = lookupTableWithConfigAndBase(Dict.empty)
 export lookupTable = lookupTableWithConfig(DEFAULT_CONFIG)
-fuzzyLookup :: Dictionary a (List #[Tag, b]) -> List Tag
-export fuzzyLookup = pipe(
+fuzzyFilter :: Dictionary a (List #[Tag, b]) -> List Tag
+export fuzzyFilter = pipe(
   Dict.values,
   List.flatten,
   map(Tuple.fst),
   List.uniqueBy(equals),
-  List.sortBy(_compareTagByAffinity),
 )
-fuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
-export fuzzyWithConfig = (conf, str, tags) => pipe(
+unlawfulFuzzyCompare :: Dictionary a (List #[Tag, b]) -> List Tag
+unlawfulFuzzyCompare = pipe(
+  fuzzyFilter,
+  List.sortBy(_unlawfulCompareTagByAffinity),
+)
+unlawfulFuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
+export unlawfulFuzzyWithConfig = (conf, str, tags) => pipe(
   lookupTableWithConfig(conf, str),
-  fuzzyLookup,
+  unlawfulFuzzyCompare,
 )(tags)
-export fuzzy = fuzzyWithConfig(DEFAULT_CONFIG)
+// as implied, fuzzy isn't a lawful sort
+fuzzy :: String -> List Tag -> List Tag
+export fuzzy = unlawfulFuzzyWithConfig(DEFAULT_CONFIG)
 relate :: List Tag -> Tag -> List Float
 export relate = (ts, t) => List.reduce(
   (agg, u) => pipe(
