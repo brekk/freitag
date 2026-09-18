@@ -1,10 +1,13 @@
 import type { Comparison } from "Compare"
+import type { Maybe } from "Maybe"
 
 import type { Tag } from "@/Tag"
 
 import { EQ, GT, LT } from "Compare"
+import Fn from "Function"
 import List from "List"
-import { Just, Nothing } from "Maybe"
+import { Just, Nothing, fromMaybe } from "Maybe"
+import {} from "Scan"
 import String from "String"
 
 import Tag from "@/Tag"
@@ -15,28 +18,69 @@ import Tag from "@/Tag"
 export type TagQuery = NoTags | ExactQuery(Tag) | InvertQuery(Tag) | AnyTag
 // Tagged stuff can have many query tags to a single shared value
 export type Tagged a = Tagged(List TagQuery, a)
+instance Scan TagQuery {
+  scan = queryFromString
+}
+export _dropFinalStars = (x) => {
+  v = List.last(x) ?? ""
+  return v == "*" ? List.dropLast(1, x) : x
+}
+queryFromString :: String -> Maybe TagQuery
+export queryFromString = (raw) => {
+  tr = String.trim(raw)
+  neg = String.startsWith("!", tr)
+  stripped = neg ? String.drop(1, tr) : tr
+
+
+  return if (stripped == "*") {
+    Just(neg ? NoTags : AnyTag)
+  } else {
+    pipe(
+      String.split(":"),
+      List.reject(String.isEmpty),
+      Fn.ifElse(
+        List.isEmpty,
+        Fn.always(Nothing),
+        pipe(
+          _dropFinalStars,
+          Tag,
+          neg ? InvertQuery : ExactQuery,
+          Just,
+        ),
+      ),
+    )(stripped)
+  }
+}
+fromString :: String -> List (Maybe TagQuery)
+export fromString = pipe(
+  String.split(","),
+  map(queryFromString),
+)
 // CONSTRUCTORS
 
-export createExact = pipe(
+export _createExact = pipe(
   Tag.Tag,
   ExactQuery,
 )
 // simple constructor allows us to go from strings to a Tagged item
-tagged :: List (List String) -> a -> Tagged a
-export tagged = pipe(
-  map(createExact),
+create :: List (List String) -> a -> Tagged a
+export create = pipe(
+  map(_createExact),
   Tagged,
 )
-export stripQuery = where {
-  ExactQuery(x) =>
-    x
-
-  InvertQuery(x) =>
-    x
-
-  _ =>
-    Tag.NoTag
+// ACCESSORS
+queries :: Tagged a -> List TagQuery
+export queries = where {
+  Tagged(q, _) =>
+    q
 }
+subject :: Tagged a -> a
+export subject = where {
+  Tagged(_, s) =>
+    s
+}
+// THE REST
+mapQuery :: (Tag -> Tag) -> TagQuery -> TagQuery
 export mapQuery = (fn, xx) => where(xx) {
   ExactQuery(x) =>
     ExactQuery(fn(x))
@@ -47,51 +91,13 @@ export mapQuery = (fn, xx) => where(xx) {
   _ =>
     xx
 }
-queries :: Tagged a -> List TagQuery
-export queries = where {
-  Tagged(q, _) =>
-    q
-}
 mapQueries :: (List TagQuery -> List TagQuery) -> Tagged a -> Tagged a
 export mapQueries = (fn, x) => where(x) {
   Tagged(a, b) =>
     Tagged(fn(a), b)
 }
-subject :: Tagged a -> a
-export subject = where {
-  Tagged(_, s) =>
-    s
-}
-matchPredicate = (match, s, qq) => where(qq) {
-  NoTags =>
-    false
-
-  AnyTag =>
-    true
-
-  ExactQuery(uu) =>
-    match(uu, s)
-
-  InvertQuery(uu) =>
-    !match(uu, s)
-}
-checkMatch = matchPredicate(
-  (uu, s) => where(uu) {
-    Tag.Tag(u2) =>
-      pipe(
-        map(String.toLower),
-        List.includes(String.toLower(s)),
-      )(u2)
-
-    Tag.NoTag =>
-      false
-  },
-)
-export fuzzy = (s, tgd) => pipe(
-  queries,
-  List.filter(checkMatch(s)),
-)(tgd)
-isPrefixOf = (pattern, mTag) => where(mTag) {
+_isPrefixOf :: List String -> Tag -> Boolean
+export _isPrefixOf = (pattern, mTag) => where(mTag) {
   Tag.Tag(tag) =>
     do {
       n = List.length(pattern)
@@ -101,15 +107,16 @@ isPrefixOf = (pattern, mTag) => where(mTag) {
   _ =>
     false
 }
-claims = (qq, tag) => where(qq) {
+tagApplies :: Tag -> TagQuery -> Boolean
+export tagApplies = (tag, qq) => where(qq) {
   ExactQuery(Tag.Tag(segments)) =>
-    isPrefixOf(segments, tag)
+    _isPrefixOf(segments, tag)
 
   ExactQuery(_) =>
     false
 
   InvertQuery(Tag.Tag(segments)) =>
-    isPrefixOf(segments, tag)
+    _isPrefixOf(segments, tag)
 
   InvertQuery(_) =>
     false
@@ -120,7 +127,8 @@ claims = (qq, tag) => where(qq) {
   NoTags =>
     false
 }
-appliesTo = where {
+queryAppliesTo :: TagQuery -> Boolean
+export queryAppliesTo = where {
   ExactQuery(_) =>
     true
 
@@ -133,17 +141,12 @@ appliesTo = where {
   NoTags =>
     false
 }
-enabled :: Tagged a -> Tag -> Boolean
-enabled = (tgd, tag) => pipe(
+matchingTag :: Tag -> Tagged a -> Boolean
+export matchingTag = (tag, tgd) => pipe(
   queries,
-  List.find(claims($, tag)),
-  where {
-    Just(q) =>
-      appliesTo(q)
-
-    Nothing =>
-      false
-  },
+  List.find(tagApplies(tag)),
+  map(queryAppliesTo),
+  fromMaybe(false),
 )(tgd)
-filter :: List (Tagged a) -> Tag -> List (Tagged a)
-export filter = (tagLib, queryTag) => List.filter(enabled($, queryTag), tagLib)
+filterByQuery :: Tag -> List (Tagged a) -> List (Tagged a)
+export filterByQuery = (queryTag, tagLib) => List.filter(matchingTag(queryTag), tagLib)

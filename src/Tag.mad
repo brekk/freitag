@@ -28,9 +28,6 @@ create :: List String -> Tag
 export create = Tag
 many :: List (List String) -> List Tag
 export many = map(create)
-// INTRINSICS
-
-
 // this isn't currently a lawful sort
 
 _compareTagByAffinity :: Tag -> Tag -> Comparison
@@ -253,7 +250,7 @@ export fuzzyLookup = pipe(
   List.flatten,
   map(Tuple.fst),
   List.uniqueBy(equals),
-  List.sortBy(compareTag),
+  List.sortBy(_compareTagByAffinity),
 )
 fuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
 export fuzzyWithConfig = (conf, str, tags) => pipe(
@@ -262,7 +259,13 @@ export fuzzyWithConfig = (conf, str, tags) => pipe(
 )(tags)
 export fuzzy = fuzzyWithConfig(DEFAULT_CONFIG)
 relate :: List Tag -> Tag -> List Float
-export relate = (ts, t) => List.reduce((agg, u) => List.append(affinity(t, u), agg), [], ts)
+export relate = (ts, t) => List.reduce(
+  (agg, u) => pipe(
+    List.append(affinity(t, u)),
+  )(agg),
+  [],
+  ts,
+)
 relateTags :: List Tag -> Tag -> List Tag
 export relateTags = (ts, t) => pipe(
   relate(ts),

@@ -1,8 +1,11 @@
 // import type { } from "@/Tagged"
+import { Just, Nothing } from "Maybe"
+import {} from "Scan"
+import String from "String"
 
 import { caseN2, report } from "Study"
 
-import Tag from "@/Tag"
+import T from "@/Tag"
 import Q from "@/Tagged"
 
 
@@ -17,12 +20,12 @@ HARNESS = {
     ["pastry"],
   ],
   TAGS: [
-    Tag.create(["city", "San Francisco"]),
-    Tag.create(["shop", "bakery", "Tartine"]),
-    Tag.create(["pastry", "croissant"]),
-    Tag.create(["pastry", "morning bun"]),
-    Tag.create(["bread"]),
-    Tag.create(["pastry"]),
+    T.create(["city", "San Francisco"]),
+    T.create(["shop", "bakery", "Tartine"]),
+    T.create(["pastry", "croissant"]),
+    T.create(["pastry", "morning bun"]),
+    T.create(["bread"]),
+    T.create(["pastry"]),
   ],
   ENTITY: {
     name: "Tartine",
@@ -30,13 +33,139 @@ HARNESS = {
     description: "Fantastic croissants and morning buns",
   },
 }
-ASSEMBLED = Q.tagged(HARNESS.STRINGS, HARNESS.ENTITY)
-report(Q.subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
-
-/*
-report(
-  fuzzy("pastry"),
-  "fuzzy",
-  [#[[ASSEMBLED], [Tagged(Match, [], { description: "a", location: "b", name: "c" })]]],
+ASSEMBLED = Q.create(HARNESS.STRINGS, HARNESS.ENTITY)
+EXPECTED = {
+  spiritGum: Just(Q.ExactQuery(T.Tag(["spirit-gum"]))),
+  spiritGumHead: Just(Q.ExactQuery(T.Tag(["spirit-gum", "head"]))),
+  notSpiritGumHead: Just(Q.InvertQuery(T.Tag(["spirit-gum", "head"]))),
+  notSpiritGum: Just(Q.InvertQuery(T.Tag(["spirit-gum"]))),
+}
+type DemoBook = Book(String)
+fantasyBook = Q.create(
+  [
+    ["author", "Junior Trollkin"],
+    ["publishDate", "1234-12-31"],
+    ["category", "fantasy"],
+    ["fauna", "dragon", "Smug"],
+    ["fauna", "human-like", "man-and-a-half"],
+    ["character", "Swordling the Bold"],
+    ["award", "diversity"],
+  ],
+  Book("Hoard of the Bracelets"),
 )
-*/
+spaceBook = Q.Tagged(
+  [
+    ...map(
+      Q._createExact,
+      [
+        ["author", "Jim O'Jamble"],
+        ["publishDate", "1999-10-31"],
+        ["category", "science fiction"],
+        ["fauna", "alien", "Blarrch"],
+        ["fauna", "alien", "Xyxx'l"],
+        ["character", "John O'Space"],
+      ],
+    ),
+    Q.InvertQuery(T.Tag(["diversity"])),
+    Q.InvertQuery(T.Tag(["creativity"])),
+  ],
+  Book("The Di'Dactic Par'able of In'tolerance"),
+)
+LIBRARY = [fantasyBook, spaceBook]
+report(Q.subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
+report(scan, "scan", [#["a:b:c:d:*", Just(Q.ExactQuery(T.Tag(String.split("", "abcd"))))]])
+report(
+  Q.fromString,
+  "fromString",
+  [
+    #["spirit-gum:head,!spirit-gum:*", [EXPECTED.spiritGumHead, EXPECTED.notSpiritGum]],
+    #[
+      "*,!spirit-gum:head,spirit-gum:*",
+      [Just(Q.AnyTag), EXPECTED.notSpiritGumHead, EXPECTED.spiritGum],
+    ],
+    #[
+      "spirit-gum:head,!spirit-gum:*,!*",
+      [EXPECTED.spiritGumHead, EXPECTED.notSpiritGum, Just(Q.NoTags)],
+    ],
+  ],
+)
+report(
+  Q.queries,
+  "queries",
+  [
+    #[
+      ASSEMBLED,
+      [
+        Q.ExactQuery(T.Tag(["city", "San Francisco"])),
+        Q.ExactQuery(T.Tag(["shop", "bakery", "Tartine"])),
+        Q.ExactQuery(T.Tag(["pastry", "croissant"])),
+        Q.ExactQuery(T.Tag(["pastry", "morning bun"])),
+        Q.ExactQuery(T.Tag(["bread"])),
+        Q.ExactQuery(T.Tag(["pastry"])),
+      ],
+    ],
+  ],
+)
+report(
+  Q.mapQuery(where { _ => T.NoTag }),
+  "mapQuery",
+  [
+    #[Q.NoTags, Q.NoTags],
+    #[Q._createExact(["example"]), Q.ExactQuery(T.NoTag)],
+    #[Q.InvertQuery(T.Tag(["inverted", "example"])), Q.InvertQuery(T.NoTag)],
+  ],
+)
+report(
+  Q.mapQueries(where { _ => [Q.NoTags] }),
+  "mapQueries",
+  [#[Q.create([["example"]], "test"), Q.Tagged([Q.NoTags], "test")]],
+)
+letters = String.split("")
+report(
+  Q._isPrefixOf(letters("abc")),
+  "_isPrefixOf",
+  [
+    #[T.Tag(letters("abcde")), true],
+    #[T.Tag(letters("abcd")), true],
+    #[T.Tag(letters("abc")), true],
+    #[T.Tag(letters("ab")), false],
+    #[T.Tag(letters("no")), false],
+    #[T.NoTag, false],
+  ],
+)
+report(
+  Q.tagApplies(T.Tag(["yes"])),
+  "tagApplies",
+  [
+    #[Q.ExactQuery(T.Tag(["yes"])), true],
+    #[Q.InvertQuery(T.Tag(["yes"])), true],
+    #[Q.ExactQuery(T.NoTag), false],
+    #[Q.InvertQuery(T.NoTag), false],
+    #[Q.AnyTag, true],
+    #[Q.NoTags, false],
+  ],
+)
+report(
+  Q.queryAppliesTo,
+  "queryAppliesTo",
+  [
+    #[Q.ExactQuery(T.Tag(["yes"])), true],
+    #[Q.InvertQuery(T.Tag(["yes"])), false],
+    #[Q.AnyTag, true],
+    #[Q.NoTags, false],
+  ],
+)
+report(
+  Q.matchingTag(T.Tag(["yes"])),
+  "matchingTag",
+  [
+    #[Q.create([["yes"]], "test"), true],
+    #[Q.Tagged([Q.InvertQuery(T.Tag(["yes"]))], "test"), false],
+  ],
+)
+report(
+  Q.filterByQuery($, LIBRARY),
+  "filterByQuery",
+  [#[T.Tag(["award", "diversity"]), [fantasyBook]]],
+)
+report(Q._dropFinalStars, "_dropFinalStars", [#[[], []]])
