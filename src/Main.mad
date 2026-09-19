@@ -1,8 +1,8 @@
 import IO from "IO"
 import String from "String"
 
+import Q from "@/Freitag"
 import T from "@/Tag"
-import Q from "@/Tagged"
 
 
 

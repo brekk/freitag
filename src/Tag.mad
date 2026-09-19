@@ -1,10 +1,7 @@
 import type { Comparison } from "Compare"
 import type { Maybe } from "Maybe"
 
-import type { DistanceConfig } from "CopyEdit"
-
 import { EQ, GT, LT } from "Compare"
-import Dict from "Dictionary"
 import Float from "Float"
 import Fn from "Function"
 import List from "List"
@@ -12,8 +9,6 @@ import { Just, Nothing, fromMaybe } from "Maybe"
 import {} from "Monad"
 import String from "String"
 import Tuple from "Tuple"
-
-import { DEFAULT_CONFIG, distanceDict } from "CopyEdit"
 
 import _List from "@/List"
 
@@ -28,33 +23,6 @@ create :: List String -> Tag
 export create = Tag
 many :: List (List String) -> List Tag
 export many = map(create)
-// this isn't currently a lawful sort
-
-_unlawfulCompareTagByAffinity :: Tag -> Tag -> Comparison
-export _unlawfulCompareTagByAffinity = (a, b) => where(#[a, b]) {
-  #[Tag(_), Tag(_)] =>
-    do {
-      aff = affinity(a, b)
-      return if (aff == 1) {
-        EQ
-      } else if (aff == 0) {
-        LT
-      } else do {
-        lenA = length(a)
-        lenB = length(b)
-        return lenA < lenB ? LT : GT
-      }
-    }
-
-  #[Tag(_), NoTag] =>
-    LT
-
-  #[NoTag, Tag(_)] =>
-    GT
-
-  _ =>
-    EQ
-}
 _alphasortString :: String -> String -> Comparison
 export _alphasortString = (x, y) => {
   checker = (c, ax, bx) => where(#[ax, bx]) {
@@ -204,66 +172,6 @@ export affinity = (_a, _b) => {
 }
 equals :: Tag -> Tag -> Boolean
 export equals = (_a, _b) => affinity(_a, _b) == 1
-_flatLookupTableWithConfig :: DistanceConfig
-  -> String
-  -> List Tag
-  -> List #[Tag, #[Byte, List String]]
-export _flatLookupTableWithConfig = (conf, str, tags) => pipe(
-  chain(
-    (t) => pipe(
-      toList,
-      distanceDict(conf, str),
-      Dict.toList,
-      map(where { #[dist, stack] => #[t, #[dist, stack]] }),
-    )(t),
-  ),
-)(tags)
-_lastString = pipe(
-  List.last,
-  fromMaybe(""),
-)
-lookupTableWithConfigAndBase :: Dictionary Byte (List #[Tag, String])
-  -> DistanceConfig
-  -> String
-  -> List Tag
-  -> Dictionary Byte (List #[Tag, String])
-export lookupTableWithConfigAndBase = (base, conf, str, tags) => pipe(
-  _flatLookupTableWithConfig(conf, str),
-  List.reduce(
-    (agg, step) => where(step) {
-      #[tag, #[dist, stack]] =>
-        do {
-          toAdd = [#[tag, _lastString(stack)]]
-          return Dict.includes(dist, agg)
-            ? Dict.update(List.concat(toAdd), dist, agg)
-            : Dict.insert(dist, toAdd, agg)
-        }
-    },
-    base,
-  ),
-)(tags)
-export lookupTableWithConfig = lookupTableWithConfigAndBase(Dict.empty)
-export lookupTable = lookupTableWithConfig(DEFAULT_CONFIG)
-fuzzyFilter :: Dictionary a (List #[Tag, b]) -> List Tag
-export fuzzyFilter = pipe(
-  Dict.values,
-  List.flatten,
-  map(Tuple.fst),
-  List.uniqueBy(equals),
-)
-unlawfulFuzzyCompare :: Dictionary a (List #[Tag, b]) -> List Tag
-unlawfulFuzzyCompare = pipe(
-  fuzzyFilter,
-  List.sortBy(_unlawfulCompareTagByAffinity),
-)
-unlawfulFuzzyWithConfig :: DistanceConfig -> String -> List Tag -> List Tag
-export unlawfulFuzzyWithConfig = (conf, str, tags) => pipe(
-  lookupTableWithConfig(conf, str),
-  unlawfulFuzzyCompare,
-)(tags)
-// as implied, fuzzy isn't a lawful sort
-fuzzy :: String -> List Tag -> List Tag
-export fuzzy = unlawfulFuzzyWithConfig(DEFAULT_CONFIG)
 relate :: List Tag -> Tag -> List Float
 export relate = (ts, t) => List.reduce(
   (agg, u) => pipe(

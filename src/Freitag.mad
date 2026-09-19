@@ -1,20 +1,150 @@
+import type { Maybe } from "Maybe"
+
 import type { Tag } from "@/Tag"
-import type { TagQuery, Tagged } from "@/Tagged"
 
-import T from "@/Tag"
-import Q from "@/Tagged"
+import Fn from "Function"
+import List from "List"
+import { Just, Nothing, fromMaybe } from "Maybe"
+import {} from "Scan"
+import String from "String"
+
+import Tag from "@/Tag"
 
 
 
-export type Tag
-export type TagQuery
-export type Tagged
-export Tag = T.Tag
-export NoTag = T.Tag
-export createTag = T.create
-export NoTags = Q.NoTags
-export ExactQuery = Q.ExactQuery
-export InvertQuery = Q.InvertQuery
-export AnyTag = Q.AnyTag
-export createTagged = Q.create
-export filterByQuery = Q.filterByQuery
+// tag queries allow us to have modifiers to the base tag logic
+export type TagQuery = NoTags | ExactQuery(Tag) | InvertQuery(Tag) | AnyTag
+// Tagged stuff can have many query tags to a single shared value
+export type Tagged a = Tagged(List TagQuery, a)
+instance Scan TagQuery {
+  scan = queryFromString
+}
+export _dropFinalStars = (x) => {
+  v = List.last(x) ?? ""
+  return v == "*" ? List.dropLast(1, x) : x
+}
+queryFromString :: String -> Maybe TagQuery
+export queryFromString = (raw) => {
+  tr = String.trim(raw)
+  neg = String.startsWith("!", tr)
+  stripped = neg ? String.drop(1, tr) : tr
+
+
+  return if (stripped == "*") {
+    Just(neg ? NoTags : AnyTag)
+  } else {
+    pipe(
+      String.split(":"),
+      List.reject(String.isEmpty),
+      Fn.ifElse(
+        List.isEmpty,
+        Fn.always(Nothing),
+        pipe(
+          _dropFinalStars,
+          Tag,
+          neg ? InvertQuery : ExactQuery,
+          Just,
+        ),
+      ),
+    )(stripped)
+  }
+}
+fromString :: String -> List (Maybe TagQuery)
+export fromString = pipe(
+  String.split(","),
+  map(queryFromString),
+)
+// CONSTRUCTORS
+
+export _createExact = pipe(
+  Tag.Tag,
+  ExactQuery,
+)
+// simple constructor allows us to go from strings to a Tagged item
+create :: List (List String) -> a -> Tagged a
+export create = pipe(
+  map(_createExact),
+  Tagged,
+)
+// ACCESSORS
+queries :: Tagged a -> List TagQuery
+export queries = where {
+  Tagged(q, _) =>
+    q
+}
+subject :: Tagged a -> a
+export subject = where {
+  Tagged(_, s) =>
+    s
+}
+// THE REST
+mapQuery :: (Tag -> Tag) -> TagQuery -> TagQuery
+export mapQuery = (fn, xx) => where(xx) {
+  ExactQuery(x) =>
+    ExactQuery(fn(x))
+
+  InvertQuery(x) =>
+    InvertQuery(fn(x))
+
+  _ =>
+    xx
+}
+mapQueries :: (List TagQuery -> List TagQuery) -> Tagged a -> Tagged a
+export mapQueries = (fn, x) => where(x) {
+  Tagged(a, b) =>
+    Tagged(fn(a), b)
+}
+_isPrefixOf :: List String -> Tag -> Boolean
+export _isPrefixOf = (pattern, mTag) => where(mTag) {
+  Tag.Tag(tag) =>
+    do {
+      n = List.length(pattern)
+      return List.length(tag) >= n && List.take(n, tag) == pattern
+    }
+
+  _ =>
+    false
+}
+tagApplies :: Tag -> TagQuery -> Boolean
+export tagApplies = (tag, qq) => where(qq) {
+  ExactQuery(Tag.Tag(segments)) =>
+    _isPrefixOf(segments, tag)
+
+  ExactQuery(_) =>
+    false
+
+  InvertQuery(Tag.Tag(segments)) =>
+    _isPrefixOf(segments, tag)
+
+  InvertQuery(_) =>
+    false
+
+  AnyTag =>
+    true
+
+  NoTags =>
+    false
+}
+queryAppliesTo :: TagQuery -> Boolean
+export queryAppliesTo = where {
+  ExactQuery(_) =>
+    true
+
+  InvertQuery(_) =>
+    false
+
+  AnyTag =>
+    true
+
+  NoTags =>
+    false
+}
+matchingTag :: Tag -> Tagged a -> Boolean
+export matchingTag = (tag, tgd) => pipe(
+  queries,
+  List.find(tagApplies(tag)),
+  map(queryAppliesTo),
+  fromMaybe(false),
+)(tgd)
+filterByQuery :: Tag -> List (Tagged a) -> List (Tagged a)
+export filterByQuery = (queryTag, tagLib) => List.filter(matchingTag(queryTag), tagLib)

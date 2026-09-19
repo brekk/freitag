@@ -15,19 +15,15 @@ import {
   NoTag,
   Tag,
   _alphasortString,
-  _flatLookupTableWithConfig,
-  _unlawfulCompareTagByAffinity,
   affinity,
   compareTag,
   create,
   difference,
   focus,
-  fuzzy,
   isBand,
   isRelative,
   isRootSibling,
   length,
-  lookupTable,
   many,
   overlap,
   relate,
@@ -114,16 +110,7 @@ export checkCompare = (check, a, b, c) => where(validateCompare(check, a, b, c))
     reflexive && antisymmetric && transitive
 }
 VALID = { antisymmetric: true, reflexive: true, transitive: true }
-MOSTLY_VALID = { antisymmetric: false, reflexive: true, transitive: true }
 validateComparisonAlgo = (x) => Study.report(Study.caseN3(validateCompare(x)))
-validateComparisonAlgo(_unlawfulCompareTagByAffinity)(
-  "ensure unlawfulCompareTagByAffinity is a mostly valid comparison algo",
-  [
-    #[#[create(["blah"]), create(["claw"]), create(["baw"])], MOSTLY_VALID],
-    #[#[NoTag, create(["claw"]), create(["baw"])], VALID],
-    #[#[create(["blah"]), create(["blah", "blah"]), create(["blah", "nah"])], MOSTLY_VALID],
-  ],
-)
 validateComparisonAlgo(compareTag)(
   "ensure compareTag is a valid comparison algo",
   [
@@ -251,163 +238,6 @@ Study.report(
     ],
   ],
 )
-// Study.report(lookupTable("francisco"), "lookupTable", [#[many(TARTINE), Dict.empty]])
-
-Study.report(
-  _flatLookupTableWithConfig(DEFAULT_CONFIG, "francisco"),
-  "_flatLookupTable",
-  [
-    #[
-      many(TARTINE),
-      [
-        #[Tag(["location", "city", "San Francisco"]), #[5_b, ["San Francisco"]]],
-        #[Tag(["location", "city", "San Francisco"]), #[7_b, ["city"]]],
-        #[Tag(["location", "city", "San Francisco"]), #[8_b, ["location"]]],
-        #[Tag(["location", "neighborhood", "The Mission"]), #[8_b, ["location", "The Mission"]]],
-        #[Tag(["location", "neighborhood", "The Mission"]), #[11_b, ["neighborhood"]]],
-        #[Tag(["shop", "bakery", "Tartine"]), #[7_b, ["Tartine"]]],
-        #[Tag(["shop", "bakery", "Tartine"]), #[8_b, ["shop", "bakery"]]],
-        #[Tag(["shop", "food", "on-site"]), #[7_b, ["on-site"]]],
-        #[Tag(["shop", "food", "on-site"]), #[8_b, ["shop", "food"]]],
-        #[Tag(["baked", "pastry", "croissant"]), #[8_b, ["baked", "pastry", "croissant"]]],
-        #[Tag(["baked", "pastry", "morning bun"]), #[8_b, ["baked", "pastry"]]],
-        #[Tag(["baked", "pastry", "morning bun"]), #[9_b, ["morning bun"]]],
-        #[Tag(["baked", "bread", "sourdough"]), #[8_b, ["baked", "bread"]]],
-        #[Tag(["baked", "bread", "sourdough"]), #[9_b, ["sourdough"]]],
-        #[Tag(["pastry"]), #[8_b, ["pastry"]]],
-        #[Tag(["bread"]), #[8_b, ["bread"]]],
-        #[Tag(["near", "Dolores Park"]), #[8_b, ["near"]]],
-        #[Tag(["near", "Dolores Park"]), #[11_b, ["Dolores Park"]]],
-      ],
-    ],
-  ],
-)
-Study.report(
-  lookupTable("francisco"),
-  "lookupTable",
-  [
-    #[
-      many(TARTINE),
-      {{
-        5_b: [#[Tag(["location", "city", "San Francisco"]), "San Francisco"]],
-        7_b: [
-          #[Tag(["shop", "food", "on-site"]), "on-site"],
-          #[Tag(["shop", "bakery", "Tartine"]), "Tartine"],
-          #[Tag(["location", "city", "San Francisco"]), "city"],
-        ],
-        8_b: [
-          #[Tag(["near", "Dolores Park"]), "near"],
-          #[Tag(["bread"]), "bread"],
-          #[Tag(["pastry"]), "pastry"],
-          #[Tag(["baked", "bread", "sourdough"]), "bread"],
-          #[Tag(["baked", "pastry", "morning bun"]), "pastry"],
-          #[Tag(["baked", "pastry", "croissant"]), "croissant"],
-          #[Tag(["shop", "food", "on-site"]), "food"],
-          #[Tag(["shop", "bakery", "Tartine"]), "bakery"],
-          #[Tag(["location", "neighborhood", "The Mission"]), "The Mission"],
-          #[Tag(["location", "city", "San Francisco"]), "location"],
-        ],
-        9_b: [
-          #[Tag(["baked", "bread", "sourdough"]), "sourdough"],
-          #[Tag(["baked", "pastry", "morning bun"]), "morning bun"],
-        ],
-        11_b: [
-          #[Tag(["near", "Dolores Park"]), "Dolores Park"],
-          #[Tag(["location", "neighborhood", "The Mission"]), "neighborhood"],
-        ],
-      }},
-    ],
-  ],
-)
-Study.report(
-  lookupTable("pastry"),
-  "lookupTable(pastry)",
-  [
-    #[
-      many(TARTINE),
-      {{
-        0_b: [
-          #[Tag(["pastry"]), "pastry"],
-          #[Tag(["baked", "pastry", "morning bun"]), "pastry"],
-          #[Tag(["baked", "pastry", "croissant"]), "pastry"],
-        ],
-        3_b: [#[Tag(["shop", "bakery", "Tartine"]), "bakery"]],
-        4_b: [#[Tag(["location", "city", "San Francisco"]), "city"]],
-        5_b: [
-          #[Tag(["near", "Dolores Park"]), "near"],
-          #[Tag(["baked", "bread", "sourdough"]), "baked"],
-          #[Tag(["baked", "pastry", "morning bun"]), "baked"],
-          #[Tag(["baked", "pastry", "croissant"]), "baked"],
-          #[Tag(["shop", "food", "on-site"]), "shop"],
-          #[Tag(["shop", "bakery", "Tartine"]), "Tartine"],
-        ],
-        6_b: [
-          #[Tag(["bread"]), "bread"],
-          #[Tag(["baked", "bread", "sourdough"]), "bread"],
-          #[Tag(["shop", "food", "on-site"]), "on-site"],
-        ],
-        7_b: [
-          #[Tag(["location", "neighborhood", "The Mission"]), "location"],
-          #[Tag(["location", "city", "San Francisco"]), "location"],
-        ],
-        8_b: [#[Tag(["baked", "pastry", "croissant"]), "croissant"]],
-        9_b: [#[Tag(["baked", "bread", "sourdough"]), "sourdough"]],
-        10_b: [
-          #[Tag(["near", "Dolores Park"]), "Dolores Park"],
-          #[Tag(["location", "neighborhood", "The Mission"]), "The Mission"],
-        ],
-        11_b: [
-          #[Tag(["baked", "pastry", "morning bun"]), "morning bun"],
-          #[Tag(["location", "neighborhood", "The Mission"]), "neighborhood"],
-          #[Tag(["location", "city", "San Francisco"]), "San Francisco"],
-        ],
-      }},
-    ],
-  ],
-)
-fuzzytest = Study.report(Study.caseN2(fuzzy))
-fuzzytest(
-  "fuzzy search: pastry",
-  [
-    #[
-      #["pastry", many(TARTINE)],
-      [
-        Tag(["pastry"]),
-        Tag(["baked", "pastry", "croissant"]),
-        Tag(["baked", "pastry", "morning bun"]),
-        Tag(["shop", "bakery", "Tartine"]),
-        Tag(["location", "city", "San Francisco"]),
-        Tag(["near", "Dolores Park"]),
-        Tag(["baked", "bread", "sourdough"]),
-        Tag(["shop", "food", "on-site"]),
-        Tag(["bread"]),
-        Tag(["location", "neighborhood", "The Mission"]),
-      ],
-    ],
-  ],
-)
-fuzzytest(
-  "fuzzy search: baker",
-  [
-    #[
-      #["baker", many(TARTINE)],
-      [
-        Tag(["baked", "pastry", "croissant"]),
-        Tag(["baked", "pastry", "morning bun"]),
-        Tag(["baked", "bread", "sourdough"]),
-        Tag(["shop", "bakery", "Tartine"]),
-        Tag(["near", "Dolores Park"]),
-        Tag(["bread"]),
-        Tag(["pastry"]),
-        Tag(["shop", "food", "on-site"]),
-        Tag(["location", "neighborhood", "The Mission"]),
-        Tag(["location", "city", "San Francisco"]),
-      ],
-    ],
-  ],
-)
-// Study.report(fuzzy("francisco"), "fuzzy", [#[many(TARTINE), Just([])]])
-
 Study.report(
   relate(many(TARTINE)),
   "relate",

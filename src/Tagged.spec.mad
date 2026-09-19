@@ -1,12 +1,11 @@
-// import type { } from "@/Tagged"
-import { Just, Nothing } from "Maybe"
+import { Just } from "Maybe"
 import {} from "Scan"
 import String from "String"
 
-import { caseN2, report } from "Study"
+import { report } from "Study"
 
+import Q from "@/Freitag"
 import T from "@/Tag"
-import Q from "@/Tagged"
 
 
 
