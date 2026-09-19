@@ -1,5 +1,5 @@
 {
-  "buildHash": "4e635a1ea9aafcc637a6732eb8e0e2e9",
+  "buildHash": "22971a48255f259498ca5785abb77cca",
   "jsApi": {
     "apiInstances": [
       "Comparable Tag",
@@ -20,6 +20,7 @@
       "src/List.mad#divergeBy": "Eq a => (a -> b -> Boolean) -> List a -> List b -> List #[Maybe a, Maybe b]",
       "src/Tag.mad#relateManyTags": "List Tag -> List Tag -> List (List Tag)",
       "src/Tag.mad#focus": "Tag -> Maybe String",
+      "_isFinalStar": "List String -> Boolean",
       "src/Tag.mad#many": "List (List String) -> List Tag",
       "create": "List (List String) -> a -> Tagged a",
       "tagApplies": "Tag -> TagQuery -> Boolean",
@@ -31,11 +32,11 @@
       "queries": "Tagged a -> List TagQuery",
       "fromString": "String -> List (Maybe TagQuery)",
       "filterByQuery": "Tag -> List (Tagged a) -> List (Tagged a)",
-      "src/Tag.mad#equals": "Tag -> Tag -> Boolean",
       "src/Tag.mad#overlap": "Tag -> Tag -> List String",
       "_dropFinalStars": "List String -> List String",
       "src/Tag.mad#render": "Tag -> String",
       "src/Tag.mad#_alphasortString": "String -> String -> Comparison",
+      "_starCross": "List String -> List String -> List String",
       "src/List.mad#diverge": "Eq a => List a -> List a -> List #[Maybe a, Maybe a]",
       "src/Tag.mad#isRootSibling": "Tag -> Tag -> Boolean",
       "src/Tag.mad#fold": "(String -> List String -> Boolean) -> Tag -> Tag -> List String",
@@ -84,6 +85,7 @@
       "src/List.mad#divergeBy": "Eq a => (a -> b -> Boolean) -> List a -> List b -> List #[Maybe a, Maybe b]",
       "src/Tag.mad#relateManyTags": "List Tag -> List Tag -> List (List Tag)",
       "src/Tag.mad#focus": "Tag -> Maybe String",
+      "_isFinalStar": "List String -> Boolean",
       "src/Tag.mad#many": "List (List String) -> List Tag",
       "create": "List (List String) -> a -> Tagged a",
       "tagApplies": "Tag -> TagQuery -> Boolean",
@@ -95,11 +97,11 @@
       "queries": "Tagged a -> List TagQuery",
       "fromString": "String -> List (Maybe TagQuery)",
       "filterByQuery": "Tag -> List (Tagged a) -> List (Tagged a)",
-      "src/Tag.mad#equals": "Tag -> Tag -> Boolean",
       "src/Tag.mad#overlap": "Tag -> Tag -> List String",
       "_dropFinalStars": "List String -> List String",
       "src/Tag.mad#render": "Tag -> String",
       "src/Tag.mad#_alphasortString": "String -> String -> Comparison",
+      "_starCross": "List String -> List String -> List String",
       "src/List.mad#diverge": "Eq a => List a -> List a -> List #[Maybe a, Maybe a]",
       "src/Tag.mad#isRootSibling": "Tag -> Tag -> Boolean",
       "src/Tag.mad#fold": "(String -> List String -> Boolean) -> Tag -> Tag -> List String",
@@ -128,5 +130,5 @@
       ]
     }
   },
-  "versionHash": "47354877541923135499c38a6606138a"
+  "versionHash": "272f0a04b740763e0a29316bc4af89a4"
 }
