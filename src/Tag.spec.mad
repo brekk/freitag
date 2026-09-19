@@ -8,7 +8,6 @@ import Set from "Set"
 import String from "String"
 import { assertEquals, test } from "Test"
 
-import { DEFAULT_CONFIG } from "CopyEdit"
 import Study from "Study"
 
 import {

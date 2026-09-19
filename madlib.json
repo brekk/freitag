@@ -1,6 +1,6 @@
 {
   "name": "freitag",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "src/Freitag.mad",
   "importAliases": {
     ".": "src"
@@ -15,11 +15,6 @@
       "minVersion": "0.0.9",
       "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.9.zip",
       "description": "PartyBus"
-    },
-    {
-      "minVersion": "0.0.2",
-      "url": "https://github.com/brekk/copyedit/archive/refs/tags/v0.0.2.zip",
-      "description": "CopyEdit"
     }
   ]
 }
