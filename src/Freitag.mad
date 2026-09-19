@@ -12,6 +12,7 @@ import Tag from "@/Tag"
 
 
 
+WILDCARD = "*"
 // tag queries allow us to have modifiers to the base tag logic
 export type TagQuery = NoTags | ExactQuery(Tag) | InvertQuery(Tag) | AnyTag
 // Tagged stuff can have many query tags to a single shared value
@@ -19,10 +20,11 @@ export type Tagged a = Tagged(List TagQuery, a)
 instance Scan TagQuery {
   scan = queryFromString
 }
-export _dropFinalStars = (x) => {
+export _isFinalStar = (x) => {
   v = List.last(x) ?? ""
-  return v == "*" ? List.dropLast(1, x) : x
+  return v == WILDCARD
 }
+export _dropFinalStars = (x) => _isFinalStar(x) ? List.dropLast(1, x) : x
 queryFromString :: String -> Maybe TagQuery
 export queryFromString = (raw) => {
   tr = String.trim(raw)
@@ -40,7 +42,7 @@ export queryFromString = (raw) => {
         List.isEmpty,
         Fn.always(Nothing),
         pipe(
-          _dropFinalStars,
+          // _dropFinalStars,
           Tag,
           neg ? InvertQuery : ExactQuery,
           Just,
@@ -94,12 +96,43 @@ export mapQueries = (fn, x) => where(x) {
   Tagged(a, b) =>
     Tagged(fn(a), b)
 }
+_starCross :: List String -> List String -> List String
+export _starCross = (as, bs) => {
+  isWild = _isFinalStar(as)
+  aLen = List.length(_dropFinalStars(as))
+  len4Len = aLen <= List.length(bs)
+  checkFirst = isWild && len4Len
+
+  return if (!checkFirst) {
+    as
+  } else {
+    pipe(
+      List.zip(as),
+      List.reduce(
+        (arr, pair) => where(pair) {
+          #[a, b] =>
+            [
+              ...arr,
+              if (List.length(arr) < aLen) {
+                a
+              } else {
+                b
+              },
+            ]
+        },
+        [],
+      ),
+    )(bs)
+  }
+}
 _isPrefixOf :: List String -> Tag -> Boolean
 export _isPrefixOf = (pattern, mTag) => where(mTag) {
   Tag.Tag(tag) =>
     do {
-      n = List.length(pattern)
-      return List.length(tag) >= n && List.take(n, tag) == pattern
+      isWild = _isFinalStar(pattern)
+      lovers = _starCross(pattern, tag)
+      n = List.length(lovers)
+      return List.length(tag) >= n && List.take(n, tag) == lovers
     }
 
   _ =>

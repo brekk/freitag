@@ -2,7 +2,7 @@ import { Just } from "Maybe"
 import {} from "Scan"
 import String from "String"
 
-import { report } from "Study"
+import { caseN2, report } from "Study"
 
 import Q from "@/Freitag"
 import T from "@/Tag"
@@ -34,10 +34,10 @@ HARNESS = {
 }
 ASSEMBLED = Q.create(HARNESS.STRINGS, HARNESS.ENTITY)
 EXPECTED = {
-  spiritGum: Just(Q.ExactQuery(T.Tag(["spirit-gum"]))),
+  spiritGum: Just(Q.ExactQuery(T.Tag(["spirit-gum", "*"]))),
   spiritGumHead: Just(Q.ExactQuery(T.Tag(["spirit-gum", "head"]))),
   notSpiritGumHead: Just(Q.InvertQuery(T.Tag(["spirit-gum", "head"]))),
-  notSpiritGum: Just(Q.InvertQuery(T.Tag(["spirit-gum"]))),
+  notSpiritGum: Just(Q.InvertQuery(T.Tag(["spirit-gum", "*"]))),
 }
 type DemoBook = Book(String)
 fantasyBook = Q.create(
@@ -72,7 +72,7 @@ spaceBook = Q.Tagged(
 )
 LIBRARY = [fantasyBook, spaceBook]
 report(Q.subject, "subject", [#[ASSEMBLED, HARNESS.ENTITY]])
-report(scan, "scan", [#["a:b:c:d:*", Just(Q.ExactQuery(T.Tag(String.split("", "abcd"))))]])
+report(scan, "scan", [#["a:b:c:d:*", Just(Q.ExactQuery(T.Tag(String.split("", "abcd*"))))]])
 report(
   Q.fromString,
   "fromString",
@@ -167,4 +167,13 @@ report(
   "filterByQuery",
   [#[T.Tag(["award", "diversity"]), [fantasyBook]]],
 )
-report(Q._dropFinalStars, "_dropFinalStars", [#[[], []]])
+report(Q._dropFinalStars, "_dropFinalStars", [#[[], []], #[["blah", "*"], ["blah"]]])
+report(
+  caseN2(Q._starCross),
+  "_starCross",
+  [
+    #[#[[], []], []],
+    #[#[letters("ab*"), letters("abc")], letters("abc")],
+    #[#[letters("ab*"), letters("absolutely")], letters("absolutely")],
+  ],
+)
