@@ -170,8 +170,6 @@ export affinity = (_a, _b) => {
   )(_b)
   return n / d
 }
-equals :: Tag -> Tag -> Boolean
-export equals = (_a, _b) => affinity(_a, _b) == 1
 relate :: List Tag -> Tag -> List Float
 export relate = (ts, t) => List.reduce(
   (agg, u) => pipe(

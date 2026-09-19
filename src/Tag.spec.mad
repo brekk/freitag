@@ -1,9 +1,8 @@
 import type { Comparison } from "Compare"
 
 import { EQ, GT, LT } from "Compare"
-import Dict from "Dictionary"
 import List from "List"
-import { Just, Nothing } from "Maybe"
+import { Just } from "Maybe"
 import Set from "Set"
 import String from "String"
 import { assertEquals, test } from "Test"
