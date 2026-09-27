@@ -1,24 +1,15 @@
-# flugtag
+# freitag 
 
 ad-hoc, nestable, relatable tags
 
-Some rules about tags:
 
-1. *Tags* are non-empty caseless* string lists, e.g.: `Tag(["shop", "bakery", "Tartine"])` &mdash; *A tag can have cased text but the case of the text is not used in any automatic sorting or comparison
-2. Each index is a *Scope*
-   a. The first *Scope* is the __Root__ *Scope*
-   b. The last *Scope* is the __Focus__ *Scope*
-3. A *Band* is a single-*Scope* Tag
-4. Other *Tags* are considered siblings if the given *Tags* share a __Root__ *Scope*
-5. The overlap between *Tags* denotes their affinity
+[![Madlib Project Badge](https://img.shields.io/badge/madlib-purple?logo=github&logoSize=auto)](//github.com/madlib-lang/madlib) <!-- $MADLIB.projectBadge -->
+[![freitag v3.0.0](https://img.shields.io/badge/v3.0.0-purple?label=version)](//github.com/brekk/freitag) <!-- $MADLIB.json.version -->
 
-    a = Tag(["shop", "bakery", "Tartine"])
-    b = Tag(["shop", "exotic", "Paxton Gate"])
+---
 
-These two *Tags* have the same *Band*, "shop", and it's in the same place, so they have a stronger affinity than
+Tags are lightweight wrapper around a list of strings. `Tag(["a", "b", "c"])` Tags are meant to be automatic left-sorting, so `Tag(["a", "b"])` is naturally sorted as lesser than `Tag(["a", "b", "c"])`.
 
-    c = Tag(["airport", "shop", "Peetz", "Drip Coffee"])
+The `Tagged` type allows you to associate multiple tags with tag queries. This enables granular filtering. The user must define their request by highest specificity first, as earlier general matches will void later ones. `!flora:photosynthesis,flora:*,fauna:creature:*,ecosystem:*` can express `InvertTag(Tag(["flora", "photosynthesis"]))` and `ExactTag(Tag(["flora", "*"])` and `ExactTag(Tag(["fauna", "creature", "*"]))` and `ExactTag(Tag(["ecosystem", "*"]))`.
 
-since `a` and `b` have the same __Root__ *Scope* and length, they have the same affinity to `c`
-
-
+This pattern is used by the `party-bus` library to enable expressing granular logging via environment variable. Ostensibly you could use it for other stuff too.
