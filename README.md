@@ -12,4 +12,4 @@ Tags are lightweight wrapper around a list of strings. `Tag(["a", "b", "c"])` Ta
 
 The `Tagged` type allows you to associate multiple tags with tag queries. This enables granular filtering. The user must define their request by highest specificity first, as earlier general matches will void later ones. `!flora:photosynthesis,flora:*,fauna:creature:*,ecosystem:*` can express `InvertTag(Tag(["flora", "photosynthesis"]))` and `ExactTag(Tag(["flora", "*"])` and `ExactTag(Tag(["fauna", "creature", "*"]))` and `ExactTag(Tag(["ecosystem", "*"]))`.
 
-This pattern is used by the `party-bus` library to enable expressing granular logging via environment variable. Ostensibly you could use it for other stuff too.
+This pattern is used by the [party-bus](//github.com/brekk/party-bus) library to enable expressing granular logging via environment variable. Ostensibly you could use it for other stuff too.
