@@ -1,6 +1,6 @@
 {
   "name": "freitag",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "main": "src/Freitag.mad",
   "importAliases": {
     ".": "src"
